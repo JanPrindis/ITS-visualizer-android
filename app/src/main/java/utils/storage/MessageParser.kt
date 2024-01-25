@@ -226,13 +226,16 @@ class MessageParser {
         if(basicVehicleContainerLowFrequencyElement != null) {
 
             val pathRecordCount = basicVehicleContainerLowFrequencyElement
-                .getString("cam.pathHistory").toInt()
+                .optString("cam.pathHistory", "0").toInt()
 
             val pathRecords = basicVehicleContainerLowFrequencyElement
-                .getJSONObject("cam.pathHistory_tree")
+                .optJSONObject("cam.pathHistory_tree")
 
             // Get path history
             for (i in 0..<pathRecordCount) {
+
+                if(pathRecords == null) break
+
                 val pathData = pathRecords
                     .getJSONObject("Item $i")
                     .getJSONObject("its.PathPoint_element")

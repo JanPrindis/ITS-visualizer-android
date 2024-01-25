@@ -20,6 +20,10 @@ class MessageCleanupService : Service() {
         return null
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
+    }
+
     override fun onCreate() {
         super.onCreate()
 

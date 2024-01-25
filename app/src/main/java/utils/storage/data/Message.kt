@@ -12,7 +12,7 @@ open class Message(
     var stationType: Int?,
     var originPosition: Position?
 ) {
-    var modified: Boolean = false  // Determines if Message is no longer receiving updates and is to be deleted
+    var modified: Boolean = true  // Determines if Message is no longer receiving updates and is to be deleted
 
     open fun getProtocolName(): String {
         return ""

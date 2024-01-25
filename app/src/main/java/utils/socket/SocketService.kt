@@ -22,7 +22,7 @@ class SocketService : Service() {
 
     private var serviceJob: Job? = null
 
-    private lateinit var socket: Socket
+    private var socket: Socket? = null
     private var ipAddress: String? = null
     private var port = -1
 
@@ -91,6 +91,11 @@ class SocketService : Service() {
 
                 while (serviceJob?.isActive == true) {
                     try {
+                        if (!attemptConnection) {
+                            socket.close()
+                            buffer.clear()
+                            break
+                        }
                         val line = reader.readLine() ?: break
 
                         if (jsonObjectMayEnd) {
@@ -128,10 +133,7 @@ class SocketService : Service() {
             } catch (e: Exception) {
                 Log.e("[Socket Service]", "Connection failed!")
 
-                if (::socket.isInitialized && !socket.isClosed) {
-                    socket.close()
-                }
-
+                socket?.close()
                 attemptCount++
             }
         }
@@ -140,6 +142,8 @@ class SocketService : Service() {
     fun stopConnection() {
         attemptConnection = false
         attemptCount = 0
+
+        socket?.close()
     }
 
     fun startConnection() {
@@ -152,6 +156,6 @@ class SocketService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        socket.close()
+        socket?.close()
     }
 }

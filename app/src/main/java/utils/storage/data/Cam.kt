@@ -18,7 +18,7 @@ class Cam(
     originPosition: Position?,
     var speed: Float?,
     var heading: Float?,
-    var path: MutableList<Position>,
+    var path: MutableList<Position>?,
     var vehicleLength: Float?,
     var vehicleWidth: Float?,
     var vehicleRole: Int?,

@@ -9,14 +9,18 @@ import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.navigationrail.NavigationRailView
 import utils.socket.SocketService
 import utils.storage.MessageCleanupService
 
 class MainActivity : AppCompatActivity() {
+
+    // Navigation
+    private lateinit var navigationRail: NavigationRailView
+
+    // Services
     private lateinit var socketService: SocketService
     private lateinit var cleanerService: Intent
-
-    private lateinit var socketToggleFab: FloatingActionButton
 
     private var socketServiceBound = false
 
@@ -36,6 +40,22 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        navigationRail = findViewById(R.id.navigation_rail)
+
+        // Fragments
+        if (savedInstanceState == null) {
+            val mapFragment = MapFragment()
+            val fragmentTransaction = supportFragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.container, mapFragment, "MapFragment")
+            fragmentTransaction.addToBackStack("MapFragment")
+            fragmentTransaction.commit()
+        }
+
+        // Navigation
+        navigationRail.setOnItemSelectedListener { item ->
+            fragmentSwitch(item.itemId)
+        }
+
         // Services
         cleanerService = Intent(this, MessageCleanupService::class.java)
 
@@ -46,20 +66,31 @@ class MainActivity : AppCompatActivity() {
         // Bind to SocketService
         bindService(Intent(this, SocketService::class.java), socketServiceConnection, Context.BIND_AUTO_CREATE)
 
-        // FAB TEST
-        socketToggleFab = findViewById(R.id.socketToggleFab)
-        socketToggleFab.setOnClickListener {
-            Log.i("[FAB]", "CLICKED")
+    }
 
-            if(!socketService.attemptConnection) {
-                socketService.startConnection()
-                socketToggleFab.setImageResource(R.drawable.wifi)
-            }
-            else {
-                socketService.stopConnection()
-                socketToggleFab.setImageResource(R.drawable.wifi_off)
+    private fun fragmentSwitch(fragmentID: Int): Boolean {
+        val fragmentTransaction = supportFragmentManager.beginTransaction()
+
+        val fragmentTag = when(fragmentID) {
+            R.id.rail_menu_map -> "MapFragment"
+            R.id.rail_menu_settings -> "SettingsFragment"
+            else -> return false
+        }
+
+        var fragment = supportFragmentManager.findFragmentByTag(fragmentTag)
+
+        if (fragment == null) {
+            fragment = when(fragmentID) {
+                R.id.rail_menu_map -> MapFragment()
+                R.id.rail_menu_settings -> SettingsFragment()
+                else -> return false
             }
         }
+
+        fragmentTransaction.replace(R.id.container, fragment, fragmentTag)
+        fragmentTransaction.commit()
+
+        return true
     }
 
     override fun onDestroy() {
