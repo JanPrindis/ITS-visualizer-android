@@ -1,5 +1,9 @@
 package utils.storage
 
+import android.content.Context
+import android.content.Intent
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.honz.itsvisualizer.StatusColor
 import org.json.JSONObject
 import utils.storage.data.Cam
 import utils.storage.data.ConnectingLane
@@ -18,8 +22,7 @@ import utils.storage.data.Srem
 import utils.storage.data.Ssem
 import utils.storage.data.VehicleLights
 
-class MessageParser {
-
+class MessageParser(private val context: Context) {
     /**
      * Attempts to parse an ITS message
      * Supported protocols are: DENM, CAM, SPATEM, MAPEM, SREM, SSEM
@@ -33,7 +36,7 @@ class MessageParser {
                 ?.optJSONObject("its")
                 ?.optJSONObject("its.ItsPduHeader_element")
 
-            //val stationID = itsPduHeader?.getString("its.stationID")
+            val stationID = itsPduHeader?.getString("its.stationID")
             var protocol = ""
 
             when(itsPduHeader?.getString("its.messageID")) {
@@ -69,11 +72,19 @@ class MessageParser {
                     "[ITS]",
                     "Received [$protocol] from station ID: $stationID"
                 )*/
+                sendNotification(StatusColor.GREEN, "Received [$protocol] from station ID: $stationID")
             }
         }
         catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun sendNotification(icon: StatusColor, text: String) {
+        val statusIntent = Intent("itsVisualizer.SET_STATUS")
+        statusIntent.putExtra("statusImg", icon.value)
+        statusIntent.putExtra("statusStr", text)
+        LocalBroadcastManager.getInstance(context).sendBroadcast(statusIntent)
     }
 
     private suspend fun parseDENM(json: JSONObject) {

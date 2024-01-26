@@ -1,40 +1,76 @@
 package com.honz.itsvisualizer
 
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigationrail.NavigationRailView
 import utils.socket.SocketService
 import utils.storage.MessageCleanupService
+
+enum class StatusColor(val value: Int) {
+    RED(0),
+    YELLOW(1),
+    GREEN(2);
+}
 
 class MainActivity : AppCompatActivity() {
 
     // Navigation
     private lateinit var navigationRail: NavigationRailView
 
-    // Services
-    private lateinit var socketService: SocketService
-    private lateinit var cleanerService: Intent
+    // Status bar
+    private lateinit var statusBar: TextView
+    private var doUpdate = true
 
-    private var socketServiceBound = false
+    private val statusReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
 
-    private val socketServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder = service as SocketService.SocketServiceBinder
-            socketService = binder.getService()
-            socketServiceBound = true
-        }
+            val statusImg = intent?.getIntExtra("statusImg", -1)
+            val statusString = intent?.getStringExtra("statusStr")
 
-        override fun onServiceDisconnected(name: ComponentName?) {
-            socketServiceBound = false
+            val drawable = when(statusImg) {
+                StatusColor.RED.value -> {
+                    AppCompatResources.getDrawable(this@MainActivity, R.drawable.circle_red)
+                }
+                StatusColor.YELLOW.value -> {
+                    if(doUpdate)
+                        AppCompatResources.getDrawable(this@MainActivity, R.drawable.circle_yellow)
+                    else null
+                }
+                StatusColor.GREEN.value -> {
+                    if(doUpdate)
+                        AppCompatResources.getDrawable(this@MainActivity, R.drawable.circle_green)
+                    else null
+                }
+                else -> null
+            }
+
+            if(drawable != null)
+                statusBar.setCompoundDrawablesRelativeWithIntrinsicBounds(drawable, null, null, null)
+            statusBar.text = statusString
         }
     }
+
+    private val socketStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            doUpdate = intent?.getBooleanExtra("socketState", false) ?: false
+        }
+    }
+
+    // Services
+    private lateinit var socketService: Intent
+    private lateinit var cleanerService: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,16 +92,23 @@ class MainActivity : AppCompatActivity() {
             fragmentSwitch(item.itemId)
         }
 
+        // StatusBar
+        statusBar = findViewById(R.id.statusDescription)
+
+        val statusFilter = IntentFilter("itsVisualizer.SET_STATUS")
+        LocalBroadcastManager.getInstance(this).registerReceiver(statusReceiver, statusFilter)
+
+        // Signals from SocketService
+        val stateFilter = IntentFilter("itsVisualizer.SERVICE_STATE")
+        LocalBroadcastManager.getInstance(this).registerReceiver(socketStateReceiver, stateFilter)
+
         // Services
+        socketService = Intent(this, SocketService::class.java)
         cleanerService = Intent(this, MessageCleanupService::class.java)
 
         // Start the services
+        startService(socketService)
         startService(cleanerService)
-        startService(Intent(this, SocketService::class.java))
-
-        // Bind to SocketService
-        bindService(Intent(this, SocketService::class.java), socketServiceConnection, Context.BIND_AUTO_CREATE)
-
     }
 
     private fun fragmentSwitch(fragmentID: Int): Boolean {
@@ -96,10 +139,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
-        // Unbind from the service
-        if (socketServiceBound) {
-            unbindService(socketServiceConnection)
-            socketServiceBound = false
-        }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(statusReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(socketStateReceiver)
     }
 }

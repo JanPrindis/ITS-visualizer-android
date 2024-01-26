@@ -1,6 +1,7 @@
 package com.honz.itsvisualizer
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +14,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.MenuPopupWindow.MenuDropDownListView
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -57,13 +59,13 @@ class SettingsFragment : Fragment() {
             portInput.setText(port.toString())
 
         // Dropdown
-        val deletionTimeIndex = sharedPreferences.getInt("deletionTimeIndex", 3)
+        val deletionTimeIndex = sharedPreferences.getInt("deletionTimeIndex", 2)
         val deletionTimeOptions = resources.getStringArray(R.array.deletion_time_period)
 
         if (deletionTimeIndex >= 0 && deletionTimeIndex < deletionTimeOptions.size) {
             timeDropdown.setText(deletionTimeOptions[deletionTimeIndex], false)
         } else {
-            timeDropdown.setText(deletionTimeOptions[3], false)
+            timeDropdown.setText(deletionTimeOptions[2], false)
         }
 
         // Save button
@@ -96,7 +98,9 @@ class SettingsFragment : Fragment() {
             editor.putInt("deletionTimeIndex", deletionTimeIndex)
 
             editor.apply()
+
+            val intent = Intent("itsVisualizer.SETTINGS_UPDATED")
+            LocalBroadcastManager.getInstance(requireView().context).sendBroadcast(intent)
         }
     }
-
 }

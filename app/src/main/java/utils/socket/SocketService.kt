@@ -1,10 +1,15 @@
 package utils.socket
 
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
-import android.os.Binder
+import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.os.IBinder
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.honz.itsvisualizer.StatusColor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,25 +31,67 @@ class SocketService : Service() {
     private var ipAddress: String? = null
     private var port = -1
 
-    var attemptConnection  = true
+    private var attemptConnection  = true
     private var attemptCount = 0
 
-    private val parser = MessageParser()
+    private lateinit var sharedPreferences: SharedPreferences
+    private val parser = MessageParser(this)
 
-    inner class SocketServiceBinder: Binder() {
-        fun getService(): SocketService = this@SocketService
+    override fun onBind(intent: Intent): IBinder? {
+        return null
     }
-    private val binder = SocketServiceBinder()
 
-    override fun onBind(intent: Intent): IBinder {
-        return binder
+    private val settingsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            stopConnection()
+            loadValues()
+            startConnection()
+        }
+    }
+
+    private val socketReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if(attemptConnection)
+                stopConnection()
+            else
+                startConnection()
+
+            // Return current state
+            sendCurrentState()
+        }
+    }
+
+    private val stateRequestReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            sendCurrentState()
+        }
+    }
+
+    private fun sendCurrentState() {
+        val returnIntent = Intent("itsVisualizer.SERVICE_STATE")
+        returnIntent.putExtra("socketState", attemptConnection)
+        LocalBroadcastManager.getInstance(this@SocketService).sendBroadcast(returnIntent)
+    }
+
+    private fun loadValues() {
+        ipAddress = sharedPreferences.getString("ipAddress", null)
+        port = sharedPreferences.getInt("serverPort", -1)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // TODO: Let user choose ipAddress and port number
+
+        sharedPreferences = getSharedPreferences("Settings", Context.MODE_PRIVATE)
+
+        // Register listener for update call from settings, and socket control call
+        val settingsFilter = IntentFilter("itsVisualizer.SETTINGS_UPDATED")
+        val socketFilter = IntentFilter("itsVisualizer.TOGGLE_SOCKET_SERVICE")
+        val socketReqFilter = IntentFilter("itsVisualizer.SOCKET_SERVICE_STATE_REQUEST")
+        LocalBroadcastManager.getInstance(this).registerReceiver(settingsReceiver, settingsFilter)
+        LocalBroadcastManager.getInstance(this).registerReceiver(socketReceiver, socketFilter)
+        LocalBroadcastManager.getInstance(this).registerReceiver(stateRequestReceiver, socketReqFilter)
+
         serviceJob = CoroutineScope(Dispatchers.IO).launch {
-            ipAddress = "10.0.2.2"  // localhost from Emulator
-            port = 12345
+            loadValues()
             connectToSocket()
         }
         return START_STICKY
@@ -60,7 +107,7 @@ class SocketService : Service() {
             if (ipAddress.isNullOrEmpty() || port == -1) {
                 // IP or Port is not set
                 // TODO: Handle if port or IP is not set
-                return
+                continue
             }
 
             // Wait before retrying connection
@@ -71,7 +118,8 @@ class SocketService : Service() {
                 else -> Thread.sleep(10000)
             }
 
-            Log.i("[Socket Service]", "Attempting to connect...")
+            Log.i("[Socket Service]", "Attempting to connect to $ipAddress:$port")
+            sendNotification(StatusColor.YELLOW, "Attempting to connect to $ipAddress:$port")
 
             try {
                 val socket = Socket()
@@ -83,6 +131,7 @@ class SocketService : Service() {
                 attemptCount = 0
 
                 Log.i("[Socket Service]", "Connected!")
+                sendNotification(StatusColor.GREEN, "Connected to $ipAddress:$port!")
 
                 val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
                 val buffer = StringBuilder()
@@ -133,20 +182,33 @@ class SocketService : Service() {
             } catch (e: Exception) {
                 Log.e("[Socket Service]", "Connection failed!")
 
+                if(attemptConnection)
+                    sendNotification(StatusColor.RED, "Connection failed!")
+                else
+                    sendNotification(StatusColor.RED, "Disconnected")
+
                 socket?.close()
                 attemptCount++
             }
         }
     }
 
-    fun stopConnection() {
+    private fun sendNotification(icon: StatusColor, text: String) {
+        val statusIntent = Intent("itsVisualizer.SET_STATUS")
+        statusIntent.putExtra("statusImg", icon.value)
+        statusIntent.putExtra("statusStr", text)
+        LocalBroadcastManager.getInstance(this@SocketService).sendBroadcast(statusIntent)
+    }
+
+    private fun stopConnection() {
         attemptConnection = false
         attemptCount = 0
 
         socket?.close()
+        sendNotification(StatusColor.RED, "Disconnected")
     }
 
-    fun startConnection() {
+    private fun startConnection() {
         attemptConnection = true
     }
 
@@ -156,6 +218,10 @@ class SocketService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+
         socket?.close()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(settingsReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(socketReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(stateRequestReceiver)
     }
 }
