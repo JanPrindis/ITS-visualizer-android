@@ -31,3 +31,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Files containing API keys
+gradle.properties
+app/src/main/res/values/developer-config.xml
+
