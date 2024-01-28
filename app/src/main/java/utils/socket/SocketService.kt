@@ -106,7 +106,6 @@ class SocketService : Service() {
             if (!attemptConnection) continue
             if (ipAddress.isNullOrEmpty() || port == -1) {
                 // IP or Port is not set
-                // TODO: Handle if port or IP is not set
                 continue
             }
 

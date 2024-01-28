@@ -10,4 +10,7 @@
     <string name="save">Save settings</string>
     <string name="saved_successfully">Saved successfully!</string>
     <string name="disconnected">Disconnected</string>
+    <string name="perm_disabled_title">Permission Required</string>
+    <string name="perm_disabled_text">Location permissions are required to use this app, please enable them in settings.</string>
+    <string name="cancel">Cancel</string>
 </resources>
