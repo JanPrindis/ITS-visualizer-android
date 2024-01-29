@@ -1,19 +1,14 @@
 package com.honz.itsvisualizer
 
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.IBinder
-import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigationrail.NavigationRailView
 import utils.socket.SocketService
 import utils.storage.MessageCleanupService
@@ -69,8 +64,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Services
-    private lateinit var socketService: Intent
-    private lateinit var cleanerService: Intent
+    private var socketService: Intent? = null
+    private var cleanerService: Intent? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,12 +98,15 @@ class MainActivity : AppCompatActivity() {
         LocalBroadcastManager.getInstance(this).registerReceiver(socketStateReceiver, stateFilter)
 
         // Services
-        socketService = Intent(this, SocketService::class.java)
-        cleanerService = Intent(this, MessageCleanupService::class.java)
+        if(socketService == null) {
+            socketService = Intent(this, SocketService::class.java)
+            startService(socketService)
 
-        // Start the services
-        startService(socketService)
-        startService(cleanerService)
+        }
+        if(cleanerService == null){
+            cleanerService = Intent(this, MessageCleanupService::class.java)
+            startService(cleanerService)
+        }
     }
 
     private fun fragmentSwitch(fragmentID: Int): Boolean {
