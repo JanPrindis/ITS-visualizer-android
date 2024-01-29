@@ -79,6 +79,11 @@ class SocketService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
+    }
+
+    override fun onCreate() {
+        super.onCreate()
 
         sharedPreferences = getSharedPreferences("Settings", Context.MODE_PRIVATE)
 
@@ -94,7 +99,6 @@ class SocketService : Service() {
             loadValues()
             connectToSocket()
         }
-        return START_STICKY
     }
 
     /**

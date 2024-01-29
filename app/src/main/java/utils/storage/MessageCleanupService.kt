@@ -29,6 +29,12 @@ class MessageCleanupService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+
         sharedPreferences = getSharedPreferences("Settings", Context.MODE_PRIVATE)
 
         // Register listener for update call from settings
@@ -37,8 +43,6 @@ class MessageCleanupService : Service() {
 
         loadValues()
         initTimer()
-
-        return START_STICKY
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -60,7 +64,7 @@ class MessageCleanupService : Service() {
                     Log.i("[Message Cleaner]", "Cleanup finished! ($period s)")
                 }
             }
-        }, 0, period * 1000L)
+        }, 0, period * 5000L)
     }
 
     private fun loadValues() {
