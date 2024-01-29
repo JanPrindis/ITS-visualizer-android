@@ -1,6 +1,7 @@
 package com.honz.itsvisualizer
 
 import android.Manifest
+import android.animation.ObjectAnimator
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -15,8 +16,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.core.app.ActivityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Point
@@ -27,8 +31,11 @@ import com.mapbox.maps.Style
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
+import com.mapbox.maps.plugin.animation.moveBy
 import com.mapbox.maps.plugin.compass.compass
+import com.mapbox.maps.plugin.gestures.OnMapClickListener
 import com.mapbox.maps.plugin.gestures.OnMoveListener
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.addOnMoveListener
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.navigation.base.options.NavigationOptions
@@ -39,12 +46,19 @@ import com.mapbox.navigation.core.lifecycle.requireMapboxNavigation
 import com.mapbox.navigation.core.trip.session.LocationMatcherResult
 import com.mapbox.navigation.core.trip.session.LocationObserver
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
+import utils.visualization.Visualizator
 
 class MapFragment : Fragment() {
 
     private lateinit var mapView: MapView
     private lateinit var connectionToggleFab: FloatingActionButton
     private lateinit var cameraCenteringToggleFab: FloatingActionButton
+
+    // TEST
+    private lateinit var visualizator: Visualizator
+    private lateinit var notificationFAB: FloatingActionButton
+    private lateinit var detailsCard: MaterialCardView
+    private var doOffsetMap = false
 
     private var isTripSessionStarted = false
     private var centerCamera = true
@@ -84,6 +98,14 @@ class MapFragment : Fragment() {
         }
 
         override fun onMoveEnd(detector: MoveGestureDetector) {}
+    }
+
+    private val onMapClickListener = OnMapClickListener {
+        if(doOffsetMap) {
+            doOffsetMap = false
+            displayDetailsCard()
+            true
+        } else false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -127,6 +149,22 @@ class MapFragment : Fragment() {
 
         // Location init
         initNavigation()
+
+
+        // TEST
+        mapView.getMapboxMap().addOnMapClickListener(onMapClickListener)
+
+        notificationFAB = view.findViewById(R.id.notificationTestFAB)
+        notificationFAB.setOnClickListener {
+            doOffsetMap = !doOffsetMap
+            displayDetailsCard()
+        }
+
+        detailsCard = view.findViewById(R.id.detailsCard)
+
+        visualizator = Visualizator(mapView, requireActivity().applicationContext)
+        visualizator.addMarkerToMap(49.836466728756825, 18.157279999218662, 0.0, R.drawable.red_marker)
+        visualizator.addMarkerToMap(49.83639891553388, 18.157021924957654, 0.0, R.drawable.red_marker)
 
         return view
     }
@@ -228,8 +266,15 @@ class MapFragment : Fragment() {
 
         val mapAnimationOptions =
             MapAnimationOptions.Builder()
-                .duration(1500L)
+                .duration(1000L)
                 .build()
+
+        var xOffset = 0.0f
+        val yOffset = mapView.height * 0.5f
+
+        if(doOffsetMap) {
+            xOffset = mapView.width * 0.25f
+        }
 
         mapView.camera.easeTo(
             CameraOptions.Builder()
@@ -237,7 +282,7 @@ class MapFragment : Fragment() {
                 .bearing(location.bearing.toDouble())
                 .zoom(18.0)
                 .pitch(45.0)
-                .padding(EdgeInsets(500.0, 0.0, 0.0, 0.0))
+                .padding(EdgeInsets(yOffset.toDouble(), xOffset.toDouble(), 0.0, 0.0))
                 .build(),
             mapAnimationOptions
         )
@@ -255,6 +300,35 @@ class MapFragment : Fragment() {
         }
         else {
             cameraCenteringToggleFab.setImageResource(R.drawable.location_off)
+        }
+    }
+
+    private fun displayDetailsCard() {
+        if(doOffsetMap) {
+            Log.i("[ANIMATOR]", "Show Animation")
+            val initialX = -detailsCard.width.toFloat()
+            val finalX = 0f
+
+            val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
+            animator.duration = 500
+
+            animator.doOnStart {
+                detailsCard.visibility = View.VISIBLE
+            }
+            animator.start()
+        }
+        else {
+            Log.i("[ANIMATOR]", "Hide Animation")
+            val initialX = 0f
+            val finalX = -detailsCard.width.toFloat()
+
+            val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
+            animator.duration = 1000
+            animator.doOnEnd {
+                detailsCard.visibility = View.INVISIBLE
+
+            }
+            animator.start()
         }
     }
 
