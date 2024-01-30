@@ -123,11 +123,11 @@ class MessageParser(private val context: Context) {
         val positionElement = managementElement
             .getJSONObject("denm.eventPosition_element")
 
-        val lat = positionElement.getString("its.latitude").toDouble() // / 10000000.0
-        val lon = positionElement.getString("its.longitude").toDouble() // / 10000000.0
+        val lat = positionElement.getString("its.latitude").toDouble() / 10000000.0
+        val lon = positionElement.getString("its.longitude").toDouble() / 10000000.0
         val altitude = positionElement
             .getJSONObject("its.altitude_element")
-            .getString("its.altitudeValue").toDouble() // / 100.0
+            .getString("its.altitudeValue").toDouble() / 100.0
 
         // DENM type
         val stationType = managementElement.getString("denm.stationType").toInt()
@@ -173,11 +173,11 @@ class MessageParser(private val context: Context) {
                     .getJSONObject("its.pathPosition_element")
 
                 val deltaLat = waypoint
-                    .getString("its.deltaLatitude").toDouble() // / 10000000.0
+                    .getString("its.deltaLatitude").toDouble() / 10000000.0
                 val deltaLon = waypoint
-                    .getString("its.deltaLongitude").toDouble() // / 10000000.0
+                    .getString("its.deltaLongitude").toDouble() / 10000000.0
                 val deltaAlt = waypoint
-                    .getString("its.deltaAltitude").toDouble() // / 100.0
+                    .getString("its.deltaAltitude").toDouble() / 100.0
 
                 waypoints.add(Position(deltaLat, deltaLon, deltaAlt))
             }
@@ -252,9 +252,9 @@ class MessageParser(private val context: Context) {
                     .getJSONObject("its.PathPoint_element")
                     .getJSONObject("its.pathPosition_element")
 
-                val deltaLat = pathData.getString("its.deltaLatitude").toDouble() // / 10000000.0
-                val deltaLon = pathData.getString("its.deltaLongitude").toDouble() // / 10000000.0
-                val deltaAlt = pathData.getString("its.deltaLongitude").toDouble() // / 100.0 ?
+                val deltaLat = pathData.getString("its.deltaLatitude").toDouble() / 10000000.0
+                val deltaLon = pathData.getString("its.deltaLongitude").toDouble() / 10000000.0
+                val deltaAlt = pathData.getString("its.deltaLongitude").toDouble() / 100.0
 
                 pathHistory.add(Position(deltaLat, deltaLon, deltaAlt))
             }
@@ -305,9 +305,9 @@ class MessageParser(private val context: Context) {
             ?.getJSONObject("cam.vehicleLength_element")
 
         val vehicleLength = vehicleLengthElement
-            ?.getString("its.vehicleLengthValue")?.toFloat()  // /10.0
+            ?.getString("its.vehicleLengthValue")?.toFloat()?.div(10.0f)
         val vehicleWidth = basicVehicleContainerHighFrequencyElement
-            ?.getString("cam.vehicleWidth")?.toFloat() // /10.0
+            ?.getString("cam.vehicleWidth")?.toFloat()?.div(10.0f)
 
         val vehicleHeading: Float? = (basicVehicleContainerHighFrequencyElement
             ?.getJSONObject("cam.heading_element")
@@ -325,12 +325,12 @@ class MessageParser(private val context: Context) {
             ?.getJSONObject("cam.referencePosition_element")
 
         val lat = referencePositionElement
-            ?.getString("its.latitude")?.toDoubleOrNull() // /10000000.0
+            ?.getString("its.latitude")?.toDoubleOrNull()?.div(10000000.0)
         val lon = referencePositionElement
-            ?.getString("its.longitude")?.toDoubleOrNull() // /10000000.0
+            ?.getString("its.longitude")?.toDoubleOrNull()?.div(10000000.0)
         val alt = referencePositionElement
             ?.getJSONObject("its.altitude_element")
-            ?.getString("its.altitudeValue")?.toDoubleOrNull() // /100.0
+            ?.getString("its.altitudeValue")?.toDoubleOrNull()?.div(100.0)
 
         val stationType = basicContainerElement
             ?.getString("cam.stationType")?.toIntOrNull()
@@ -637,14 +637,14 @@ class MessageParser(private val context: Context) {
             }
 
             val lat = refPointElement
-                .getString("dsrc.lat").toDouble() // /10000000.0
+                .getString("dsrc.lat").toDouble() /10000000.0
             val lon = refPointElement
-                .getString("dsrc.long").toDouble() // /10000000.0
+                .getString("dsrc.long").toDouble() /10000000.0
             val alt = refPointElement
-                .optString("dsrc.position3D.elevation").toDoubleOrNull() // /10.0
+                .optString("dsrc.position3D.elevation").toDoubleOrNull()?.div(10.0)
 
             val laneWidth = intersectionGeometryElement
-                .getString("dsrc.laneWidth").toFloat() // /100.0f
+                .getString("dsrc.laneWidth").toFloat() / 100.0f
             val name = intersectionGeometryElement
                 .optString("dsrc.name", "Unknown")
 

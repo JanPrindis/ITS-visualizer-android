@@ -64,7 +64,7 @@ class MessageCleanupService : Service() {
                     Log.i("[Message Cleaner]", "Cleanup finished! ($period s)")
                 }
             }
-        }, 0, period * 5000L)
+        }, 0, period * 1000L)
     }
 
     private fun loadValues() {

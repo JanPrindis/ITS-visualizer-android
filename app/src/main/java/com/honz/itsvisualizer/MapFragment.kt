@@ -19,6 +19,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -31,13 +32,14 @@ import com.mapbox.maps.Style
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
-import com.mapbox.maps.plugin.animation.moveBy
 import com.mapbox.maps.plugin.compass.compass
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
 import com.mapbox.maps.plugin.gestures.OnMoveListener
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.addOnMoveListener
 import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.plugin.logo.logo
+import com.mapbox.maps.plugin.scalebar.scalebar
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp
@@ -46,7 +48,10 @@ import com.mapbox.navigation.core.lifecycle.requireMapboxNavigation
 import com.mapbox.navigation.core.trip.session.LocationMatcherResult
 import com.mapbox.navigation.core.trip.session.LocationObserver
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
-import utils.visualization.Visualizator
+import kotlinx.coroutines.launch
+import utils.storage.MessageStorage
+import utils.visualization.Visualizer
+import utils.visualization.VisualizerInstance
 
 class MapFragment : Fragment() {
 
@@ -55,7 +60,6 @@ class MapFragment : Fragment() {
     private lateinit var cameraCenteringToggleFab: FloatingActionButton
 
     // TEST
-    private lateinit var visualizator: Visualizator
     private lateinit var notificationFAB: FloatingActionButton
     private lateinit var detailsCard: MaterialCardView
     private var doOffsetMap = false
@@ -142,14 +146,21 @@ class MapFragment : Fragment() {
         mapView = view.findViewById(R.id.mapView)
         mapView.getMapboxMap().loadStyleUri(Style.TRAFFIC_DAY)
         mapView.getMapboxMap().addOnMoveListener(onMoveListener)
-        //mapView.scalebar.enabled = false
-        mapView.compass.updateSettings {
-           marginTop = 100.0f
-        }
+        mapView.logo.updateSettings { marginRight = 80.0f }
+        mapView.scalebar.updateSettings { ratio = 0.25f }
+        mapView.compass.updateSettings { marginTop = 100.0f }
 
         // Location init
         initNavigation()
 
+        // Camera position update if available
+        lastLocation?.let { updateCameraPosition(it) }
+
+        // Visualization
+        VisualizerInstance.visualizer = Visualizer(mapView, view.context.applicationContext)
+        lifecycleScope.launch {
+            MessageStorage.drawAll()
+        }
 
         // TEST
         mapView.getMapboxMap().addOnMapClickListener(onMapClickListener)
@@ -161,10 +172,6 @@ class MapFragment : Fragment() {
         }
 
         detailsCard = view.findViewById(R.id.detailsCard)
-
-        visualizator = Visualizator(mapView, requireActivity().applicationContext)
-        visualizator.addMarkerToMap(49.836466728756825, 18.157279999218662, 0.0, R.drawable.red_marker)
-        visualizator.addMarkerToMap(49.83639891553388, 18.157021924957654, 0.0, R.drawable.red_marker)
 
         return view
     }
@@ -297,6 +304,7 @@ class MapFragment : Fragment() {
 
         if(centerCamera) {
             cameraCenteringToggleFab.setImageResource(R.drawable.location)
+            lastLocation?.let { updateCameraPosition(it) }
         }
         else {
             cameraCenteringToggleFab.setImageResource(R.drawable.location_off)
@@ -340,9 +348,14 @@ class MapFragment : Fragment() {
         LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        VisualizerInstance.visualizer = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(stateReceiver)
-
     }
 }

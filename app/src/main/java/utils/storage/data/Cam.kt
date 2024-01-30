@@ -1,5 +1,9 @@
 package utils.storage.data
 
+import android.util.Log
+import com.honz.itsvisualizer.R
+import utils.visualization.VisualizerInstance
+
 data class VehicleLights(
     val lowBeamHeadLightsOn: Boolean,
     val highBeamHeadLightsOn: Boolean,
@@ -53,6 +57,19 @@ class Cam(
 
         timeEpoch = other.timeEpoch
         modified = true
+
+        draw()
+    }
+
+    override fun draw() {
+        val visualizer = VisualizerInstance.visualizer ?: return
+        val position = originPosition ?: return
+        visualizer.drawPoint(stationID, position.lat, position.lon, R.drawable.cam_placeholder_icon)
+    }
+
+    override fun remove() {
+        val visualizer = VisualizerInstance.visualizer ?: return
+        visualizer.removePoint(stationID)
     }
 
     fun getRoleString(): String {

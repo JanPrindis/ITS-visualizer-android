@@ -1,5 +1,8 @@
 package utils.storage
 
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -14,12 +17,12 @@ import utils.storage.data.Ssem
 object MessageStorage {
     private val mutex = Mutex()
 
-    val denmList: MutableList<Denm> = mutableListOf()
-    val camList: MutableList<Cam> = mutableListOf()
-    val spatemList: MutableList<Spatem> = mutableListOf()
-    val mapemList: MutableList<Mapem> = mutableListOf()
-    val sremList: MutableList<Srem> = mutableListOf()
-    val ssemList: MutableList<Ssem> = mutableListOf()
+    private val denmList: MutableList<Denm> = mutableListOf()
+    private val camList: MutableList<Cam> = mutableListOf()
+    private val spatemList: MutableList<Spatem> = mutableListOf()
+    private val mapemList: MutableList<Mapem> = mutableListOf()
+    private val sremList: MutableList<Srem> = mutableListOf()
+    private val ssemList: MutableList<Ssem> = mutableListOf()
 
     /**
      * Will either add new DENM message to storage or update existing one.
@@ -54,6 +57,7 @@ object MessageStorage {
             } else {
                 //Log.i("[CAM STORAGE]", "New CAM ${data.stationID} received, adding...")
                 camList.add(data)
+                data.draw()
             }
         }
     }
@@ -233,8 +237,10 @@ object MessageStorage {
                 val cam = camIterator.next()
                 if (cam.modified)
                     cam.modified = false
-                else
+                else {
+                    cam.remove()
                     camIterator.remove()
+                }
             }
 
             // SPATEM
@@ -276,6 +282,15 @@ object MessageStorage {
                 else
                     ssemIterator.remove()
             }
+        }
+    }
+
+    suspend fun drawAll() {
+        mutex.withLock {
+            denmList.forEach { it.draw() }
+            camList.forEach { it.draw() }
+            spatemList.forEach { it.draw() }
+            mapemList.forEach { it.draw() }
         }
     }
 

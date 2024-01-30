@@ -17,4 +17,7 @@ open class Message(
     open fun getProtocolName(): String {
         return ""
     }
+
+    open fun draw() {}
+    open fun remove() {}
 }
