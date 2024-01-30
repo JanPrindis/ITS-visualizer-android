@@ -139,5 +139,8 @@ class MainActivity : AppCompatActivity() {
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(statusReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(socketStateReceiver)
+
+        stopService(socketService)
+        stopService(cleanerService)
     }
 }

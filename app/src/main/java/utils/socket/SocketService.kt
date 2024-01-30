@@ -106,7 +106,7 @@ class SocketService : Service() {
      * If the connection fails, it will try to reconnect unless 'attemptConnection' is set to *false*.
      */
     private fun connectToSocket() {
-        while(true) {
+        while(serviceJob?.isActive == true) {
             if (!attemptConnection) continue
             if (ipAddress.isNullOrEmpty() || port == -1) {
                 // IP or Port is not set
@@ -222,6 +222,7 @@ class SocketService : Service() {
     override fun onDestroy() {
         super.onDestroy()
 
+        serviceJob?.cancel()
         socket?.close()
         LocalBroadcastManager.getInstance(this).unregisterReceiver(settingsReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(socketReceiver)

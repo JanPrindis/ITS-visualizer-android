@@ -19,6 +19,8 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.card.MaterialCardView
@@ -54,6 +56,18 @@ import utils.visualization.Visualizer
 import utils.visualization.VisualizerInstance
 
 class MapFragment : Fragment() {
+
+    init {
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                MapboxNavigationApp.attach(owner)
+            }
+
+            override fun onPause(owner: LifecycleOwner) {
+                MapboxNavigationApp.detach(owner)
+            }
+        })
+    }
 
     private lateinit var mapView: MapView
     private lateinit var connectionToggleFab: FloatingActionButton
@@ -242,11 +256,14 @@ class MapFragment : Fragment() {
      * Sets up the location provider and location puck image
      */
     private fun initNavigation() {
-        MapboxNavigationApp.setup(
-            NavigationOptions.Builder(requireActivity().applicationContext)
-                .accessToken(getString(R.string.mapbox_access_token))
-                .build()
-        )
+
+        if (!MapboxNavigationApp.isSetup()) {
+            MapboxNavigationApp.setup {
+                NavigationOptions.Builder(requireActivity().applicationContext)
+                    .accessToken(getString(R.string.mapbox_access_token))
+                    .build()
+            }.attach(this)
+        }
 
         mapView.location.apply {
             setLocationProvider(navigationLocationProvider)
@@ -352,6 +369,7 @@ class MapFragment : Fragment() {
         super.onDestroyView()
 
         VisualizerInstance.visualizer = null
+        MapboxNavigationApp.detach(this)
     }
 
     override fun onDestroy() {
