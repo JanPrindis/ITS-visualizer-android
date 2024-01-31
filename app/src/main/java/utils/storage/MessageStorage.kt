@@ -66,6 +66,7 @@ object MessageStorage {
      * Will either add new SPATEM message to storage or update existing one.
      */
     suspend fun add(data: Spatem) {
+        //TODO: MATCH SPATEM TO MAPEM
         mutex.withLock {
             val existingSpatem = spatemList.find { it.stationID == data.stationID }
 

@@ -64,7 +64,21 @@ class Cam(
     override fun draw() {
         val visualizer = VisualizerInstance.visualizer ?: return
         val position = originPosition ?: return
-        visualizer.drawPoint(stationID, position.lat, position.lon, R.drawable.cam_placeholder_icon)
+        val drawable = when(stationType) {
+            1 -> R.drawable.pedestrian_icon
+            2 -> R.drawable.cyclist_icon
+            3 -> R.drawable.moped_icon
+            4 -> R.drawable.motorbike_icon
+            5 -> R.drawable.car_icon
+            6 -> R.drawable.bus_icon
+            7 -> R.drawable.light_truck_icon
+            8 -> R.drawable.heavy_truck_icon
+            10 -> R.drawable.ambulance_icon // Special Vehicle?
+            11 -> R.drawable.tram_icon
+            15 -> R.drawable.roadside_unit_icon
+            else -> R.drawable.unknown_icon
+        }
+        visualizer.drawPoint(stationID, position.lat, position.lon, drawable)
     }
 
     override fun remove() {
