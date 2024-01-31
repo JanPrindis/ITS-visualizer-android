@@ -262,7 +262,7 @@ class MapFragment : Fragment() {
                 NavigationOptions.Builder(requireActivity().applicationContext)
                     .accessToken(getString(R.string.mapbox_access_token))
                     .build()
-            }.attach(this)
+            }
         }
 
         mapView.location.apply {
