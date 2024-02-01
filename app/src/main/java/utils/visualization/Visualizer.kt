@@ -37,7 +37,6 @@ class Visualizer(mapView: MapView, fragmentContext: Context) {
     private val pointList: MutableMap<Long, PointAnnotation> = mutableMapOf()
     private val lineList: MutableMap<Long, PolylineAnnotation> = mutableMapOf()
 
-
     fun drawPoint(stationID: Long, lat: Double, lon: Double, @DrawableRes resourceId: Int) {
         bitmapFromDrawableRes(resourceId)?.let { bitmap ->
             val existingPoint = pointList[stationID]
@@ -56,6 +55,8 @@ class Visualizer(mapView: MapView, fragmentContext: Context) {
                 val newPoint = pointAnnotationManager.create(newPointAnnotationOptions)
                 pointList[stationID] = newPoint
 
+                pointAnnotationManager.iconAllowOverlap = false
+                pointAnnotationManager.iconPadding = 10.0
                 pointAnnotationManager.addClickListener(OnPointAnnotationClickListener { pointAnnotation ->
                     Toast.makeText(
                         context,
@@ -71,7 +72,7 @@ class Visualizer(mapView: MapView, fragmentContext: Context) {
     fun removePoint(stationID: Long) {
         val point = pointList[stationID] ?: return
         pointAnnotationManager.delete(point)
-        lineList.remove(stationID)
+        pointList.remove(stationID)
     }
 
     fun drawLine(stationID: Long, points: List<Point>, colorResID: Int) {

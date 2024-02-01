@@ -368,6 +368,7 @@ class MapFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
 
+        VisualizerInstance.visualizer?.removeAllMarkers()
         VisualizerInstance.visualizer = null
         MapboxNavigationApp.detach(this)
     }

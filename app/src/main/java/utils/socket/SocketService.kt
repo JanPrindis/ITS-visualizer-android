@@ -216,7 +216,8 @@ class SocketService : Service() {
     }
 
     private suspend fun processData(data: String) {
-        parser.parseJson(data)
+        if(attemptConnection)
+            parser.parseJson(data)
     }
 
     override fun onDestroy() {
