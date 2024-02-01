@@ -1,5 +1,7 @@
 package utils.storage.data
 
+import utils.visualization.VisualizerInstance
+
 data class CauseCode(val description: String, val subCauseCodes: Map<Int, String>)
 
 class Denm(
@@ -34,6 +36,16 @@ class Denm(
 
     fun getSubCauseCodeDescription(): String {
         return causeCodeStringMap[causeCode]?.subCauseCodes?.get(subCauseCode) ?: "Unknown"
+    }
+
+    override fun draw() {
+        val visualizer = VisualizerInstance.visualizer ?: return
+        // TODO: path history calculation
+    }
+
+    override fun remove() {
+        val visualizer = VisualizerInstance.visualizer ?: return
+
     }
 
     companion object {

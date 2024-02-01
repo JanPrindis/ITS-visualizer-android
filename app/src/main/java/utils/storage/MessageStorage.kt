@@ -32,13 +32,10 @@ object MessageStorage {
             val existingDenm = denmList.find { it.stationID == data.stationID }
 
             if (existingDenm != null) {
-                //Log.i("[DENM INFO]", "Station ${data.stationID} sent update: ${data.getCauseCodeDescription()}, ${data.getSubCauseCodeDescription()}")
-
                 val index = denmList.indexOf(existingDenm)
                 denmList[index] = data
                 denmList[index].modified = true
             } else {
-                //Log.i("[DENM INFO]", "Station ${data.stationID} sent: ${data.getCauseCodeDescription()}, ${data.getSubCauseCodeDescription()}")
                 denmList.add(data)
             }
         }
@@ -52,10 +49,8 @@ object MessageStorage {
             val existingCam = camList.find { it.stationID == data.stationID }
 
             if (existingCam != null) {
-                //Log.i("[CAM STORAGE]", "CAM ${data.stationID} already exists, updating...")
                 existingCam.update(data)
             } else {
-                //Log.i("[CAM STORAGE]", "New CAM ${data.stationID} received, adding...")
                 camList.add(data)
                 data.draw()
             }
@@ -66,27 +61,24 @@ object MessageStorage {
      * Will either add new SPATEM message to storage or update existing one.
      */
     suspend fun add(data: Spatem) {
-        //TODO: MATCH SPATEM TO MAPEM
         mutex.withLock {
             val existingSpatem = spatemList.find { it.stationID == data.stationID }
 
             if (existingSpatem != null) {
-                //Log.i("[SPATEM STORAGE]", "Station ${data.stationID} sent update...")
                 val index = spatemList.indexOf(existingSpatem)
                 spatemList[index] = data
                 spatemList[index].modified = true
             } else {
-                //Log.i("[SPATEM STORAGE]", "New SPATEM from ${data.stationID} received, adding...")
                 spatemList.add(data)
             }
 
             for (intersection in data.intersections) {
-                //Log.i("[SPATEM INFO]", "Intersection: ${intersection.id}")
-                for (states in intersection.movementStates) {
-                    //Log.i("[SPATEM INFO]", "\tSignal Group: ${states.signalGroup}")
-                    for (event in states.movementEvents) {
-                        //Log.i("[SPATEM INFO]", "\t\tState [${event.eventState}] ${event.getStateColor().toStringValue()}, ${event.getStateString()}")
-                    }
+                val matchingMapem = mapemList.find { it.intersectionID == intersection.id.toLong() }
+
+                if(matchingMapem != null) {
+                    matchingMapem.latestSpatem = intersection
+                    matchingMapem.modified = true
+                    matchingMapem.draw()
                 }
             }
         }
@@ -100,13 +92,12 @@ object MessageStorage {
             val existingMapem = mapemList.find { it.intersectionID == data.intersectionID }
 
             if (existingMapem != null) {
-                //Log.i("[MAPEM STORAGE]", "Intersection ${data.intersectionID} ${data.intersectionName} sent update...")
                 val index = mapemList.indexOf(existingMapem)
-                mapemList[index] = data
                 mapemList[index].modified = true
             } else {
-                //Log.i("[MAPEM STORAGE]", "New MAPEM from [${data.intersectionID}] ${data.intersectionName} received, adding...")
                 mapemList.add(data)
+                data.prepareForDraw()
+                data.draw()
             }
         }
     }
@@ -260,8 +251,10 @@ object MessageStorage {
                 val mapem = mapemIterator.next()
                 if (mapem.modified)
                     mapem.modified = false
-                else
+                else {
+                    mapem.remove()
                     mapemIterator.remove()
+                }
             }
 
             // SREM
@@ -290,7 +283,6 @@ object MessageStorage {
         mutex.withLock {
             denmList.forEach { it.draw() }
             camList.forEach { it.draw() }
-            spatemList.forEach { it.draw() }
             mapemList.forEach { it.draw() }
         }
     }

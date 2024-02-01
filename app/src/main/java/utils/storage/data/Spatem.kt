@@ -1,9 +1,5 @@
 package utils.storage.data
 
-object SpatemStorage {
-    val spatemStorage: MutableList<Spatem> = mutableListOf()
-}
-
 class MovementEvent(
     val eventState: Int,
     val startTime: Int?,
@@ -22,8 +18,10 @@ class MovementEvent(
             "Stop-Then-Proceed",
             "Stop-And-Remain",
 
-            // Greens
+            // Red and Amber
             "Pre-Movement",
+
+            // Greens
             "Permissive-Movement-Allowed",
             "Protected-Movement-Allowed",
 
@@ -36,6 +34,7 @@ class MovementEvent(
         enum class StateColor {
             RED,
             AMBER,
+            RED_AMBER,
             GREEN,
             OFF,
             UNKNOWN;
@@ -43,6 +42,7 @@ class MovementEvent(
             fun toStringValue(): String {
                 return when (this) {
                     RED -> "Red"
+                    RED_AMBER -> "Red and amber"
                     AMBER -> "Amber"
                     GREEN -> "Green"
                     OFF -> "Off"
@@ -56,7 +56,8 @@ class MovementEvent(
         return when (eventState) {
             in 0..1 -> StateColor.OFF
             in 2..3 -> StateColor.RED
-            in 4..6 -> StateColor.GREEN
+            4 -> StateColor.RED_AMBER
+            in 5..6 -> StateColor.GREEN
             in 7..9 -> StateColor.AMBER
             else -> StateColor.UNKNOWN
         }
