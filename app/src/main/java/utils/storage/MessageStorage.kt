@@ -29,14 +29,22 @@ object MessageStorage {
      */
     suspend fun add(data: Denm) {
         mutex.withLock {
-            val existingDenm = denmList.find { it.stationID == data.stationID }
+            val existingDenm = denmList.find { it.stationID == data.stationID && it.sequenceNumber == data.sequenceNumber }
 
             if (existingDenm != null) {
                 val index = denmList.indexOf(existingDenm)
-                denmList[index] = data
-                denmList[index].modified = true
+
+                if(data.termination) {
+                    // TODO: Possible problem with status notification
+                    denmList[index].remove()
+                    denmList.removeAt(index)
+                    return
+                }
+                denmList[index].update(data)
             } else {
                 denmList.add(data)
+                data.calculatePathHistory()
+                data.draw()
             }
         }
     }
@@ -219,8 +227,10 @@ object MessageStorage {
                 val denm = denmIterator.next()
                 if (denm.modified)
                     denm.modified = false
-                else
+                else {
+                    denm.remove()
                     denmIterator.remove()
+                }
             }
 
             // CAM

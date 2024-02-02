@@ -173,11 +173,11 @@ class MessageParser(private val context: Context) {
                     .getJSONObject("its.pathPosition_element")
 
                 val deltaLat = waypoint
-                    .getString("its.deltaLatitude").toDouble() / 10000000.0
+                    .getString("its.deltaLatitude").toDouble()
                 val deltaLon = waypoint
-                    .getString("its.deltaLongitude").toDouble() / 10000000.0
+                    .getString("its.deltaLongitude").toDouble()
                 val deltaAlt = waypoint
-                    .getString("its.deltaAltitude").toDouble() / 100.0
+                    .getString("its.deltaAltitude").toDouble()
 
                 waypoints.add(Position(deltaLat, deltaLon, deltaAlt))
             }

@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
 import com.mapbox.maps.plugin.annotation.annotations
@@ -18,6 +19,7 @@ import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
+import utils.storage.data.Position
 import java.lang.ref.WeakReference
 
 object VisualizerInstance {
@@ -75,19 +77,23 @@ class Visualizer(mapView: MapView, fragmentContext: Context) {
         pointList.remove(stationID)
     }
 
-    fun drawLine(stationID: Long, points: List<Point>, colorResID: Int) {
+    fun drawLine(stationID: Long, position: List<Position>, colorResID: Int) {
         val existingLine = lineList[stationID]
+
+        val c = context ?: return
+        val colorInt = ContextCompat.getColor(c, colorResID)
+        val colorHexString = String.format("#%06X", 0xFFFFFF and colorInt)
 
         if (existingLine != null) {
             // Update existing line
-            existingLine.points = points
-            existingLine.lineColorInt = colorResID
+            existingLine.points = positionListToPointList(position)
+            existingLine.lineColorString = colorHexString
             lineAnnotationManager.update(existingLine)
         } else {
             // Create new line
             val newPolyLineAnnotationOptions = PolylineAnnotationOptions()
-                .withPoints(points)
-                .withLineColor(colorResID)
+                .withPoints(positionListToPointList(position))
+                .withLineColor(colorHexString)
                 .withLineOpacity(0.5)
                 .withLineWidth(10.0)
 
@@ -96,6 +102,19 @@ class Visualizer(mapView: MapView, fragmentContext: Context) {
         }
     }
 
+    private fun positionListToPointList(positionList: List<Position>) : List<Point> {
+        val points = mutableListOf<Point>()
+
+        for(position in positionList) {
+            points.add(positionToPoint(position))
+        }
+
+        return points
+    }
+
+    private fun positionToPoint(position: Position) : Point {
+        return Point.fromLngLat(position.lon, position.lat)
+    }
 
     fun removeLine(stationID: Long) {
         val line = lineList[stationID] ?: return
