@@ -12,7 +12,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.navigationrail.NavigationRailView
 import utils.socket.SocketService
 import utils.storage.MessageCleanupService
-import utils.storage.MessageStorage
 import kotlin.system.exitProcess
 
 enum class StatusColor(val value: Int) {
