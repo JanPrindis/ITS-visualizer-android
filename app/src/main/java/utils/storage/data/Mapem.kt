@@ -1,8 +1,5 @@
 package utils.storage.data
 
-import com.honz.itsvisualizer.R
-import utils.storage.data.MovementEvent.Companion.StateColor
-import utils.visualization.VisualizerInstance
 import kotlin.math.acos
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -77,7 +74,7 @@ class Mapem(
     // Visualization
     var latestSpatem: SPATEMIntersection? = null,
     val signalGroups: MutableList<SignalGroupCompact> = mutableListOf(),
-    private val currentIconIDs: MutableList<Long> = mutableListOf()
+    internal val currentIconIDs: MutableList<Long> = mutableListOf()
 
 ) : Message(
     messageID,
@@ -193,73 +190,6 @@ class Mapem(
                     else Maneuver.UNKNOWN
             ))
         }
-    }
-
-    override fun draw() {
-        for (signal in signalGroups) {
-            val spatem = latestSpatem?.movementStates?.find { it.signalGroup == signal.signalGroup }
-
-            val signalIcon = when (signal.maneuversAllowed) {
-                Maneuver.LEFT -> when(spatem?.movementEvents?.first()?.getStateColor()) {
-                    StateColor.RED -> R.drawable.traffic_light_red_left_icon
-                    StateColor.AMBER -> R.drawable.traffic_light_yellow_left_icon
-                    StateColor.RED_AMBER -> R.drawable.traffic_light_red_yellow_left_icon
-                    StateColor.GREEN -> R.drawable.traffic_light_green_left_icon
-                    else -> R.drawable.traffic_light_blank_left_icon
-                }
-                Maneuver.LEFT_STRAIGHT -> when(spatem?.movementEvents?.first()?.getStateColor()) {
-                    StateColor.RED -> R.drawable.traffic_light_red_straight_left_icon
-                    StateColor.AMBER -> R.drawable.traffic_light_yellow_straight_left_icon
-                    StateColor.RED_AMBER -> R.drawable.traffic_light_red_yellow_straight_left_icon
-                    StateColor.GREEN -> R.drawable.traffic_light_green_straight_left_icon
-                    else -> R.drawable.traffic_light_blank_straight_left_icon
-                }
-                Maneuver.STRAIGHT -> when(spatem?.movementEvents?.first()?.getStateColor()) {
-                    StateColor.RED -> R.drawable.traffic_light_red_straight_icon
-                    StateColor.AMBER -> R.drawable.traffic_light_yellow_straight_icon
-                    StateColor.RED_AMBER -> R.drawable.traffic_light_red_yellow_straight_icon
-                    StateColor.GREEN -> R.drawable.traffic_light_green_straight_icon
-                    else -> R.drawable.traffic_light_blank_straight_icon
-                }
-                Maneuver.RIGHT_STRAIGHT -> when(spatem?.movementEvents?.first()?.getStateColor()) {
-                    StateColor.RED -> R.drawable.traffic_light_red_straight_right_icon
-                    StateColor.AMBER -> R.drawable.traffic_light_yellow_straight_right_icon
-                    StateColor.RED_AMBER -> R.drawable.traffic_light_red_yellow_straight_right_icon
-                    StateColor.GREEN -> R.drawable.traffic_light_green_straight_right_icon
-                    else -> R.drawable.traffic_light_blank_straight_right_icon
-                }
-                Maneuver.RIGHT -> when(spatem?.movementEvents?.first()?.getStateColor()) {
-                    StateColor.RED -> R.drawable.traffic_light_red_right_icon
-                    StateColor.AMBER -> R.drawable.traffic_light_yellow_right_icon
-                    StateColor.RED_AMBER -> R.drawable.traffic_light_red_yellow_right_icon
-                    StateColor.GREEN -> R.drawable.traffic_light_green_right_icon
-                    else -> R.drawable.traffic_light_blank_right_icon
-                }
-                Maneuver.LEFT_RIGHT -> when(spatem?.movementEvents?.first()?.getStateColor()) {
-                    StateColor.RED -> R.drawable.traffic_light_red_left_right_icon
-                    StateColor.AMBER -> R.drawable.traffic_light_yellow_left_right_icon
-                    StateColor.RED_AMBER -> R.drawable.traffic_light_red_yellow_left_right_icon
-                    StateColor.GREEN -> R.drawable.traffic_light_green_left_right_icon
-                    else -> R.drawable.traffic_light_blank_left_right_icon
-                }
-                else -> when(spatem?.movementEvents?.first()?.getStateColor()) {
-                    StateColor.RED -> R.drawable.traffic_light_red_icon
-                    StateColor.AMBER -> R.drawable.traffic_light_yellow_icon
-                    StateColor.RED_AMBER -> R.drawable.traffic_light_red_yellow_icon
-                    StateColor.GREEN -> R.drawable.traffic_light_green_icon
-                    else -> R.drawable.traffic_light_blank_icon
-                }
-            }
-            currentIconIDs.add(signal.id)
-            VisualizerInstance.visualizer?.drawPoint(signal.id, signal.position.lat, signal.position.lon, signalIcon)
-        }
-    }
-
-    override fun remove() {
-        for (id in currentIconIDs)
-            VisualizerInstance.visualizer?.removePoint(id)
-
-        currentIconIDs.clear()
     }
 
     companion object LaneTypes{

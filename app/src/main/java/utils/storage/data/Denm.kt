@@ -1,9 +1,6 @@
 package utils.storage.data
 
-import com.honz.itsvisualizer.R
 import utils.visualization.VisualizerInstance
-import java.math.BigDecimal
-import java.math.RoundingMode
 
 data class CauseCode(val description: String, val subCauseCodes: Map<Int, String>)
 
@@ -21,7 +18,7 @@ class Denm(
     var subCauseCode: Int,
     var pathHistory: MutableList<MutableList<Position>>,
 
-    private val calculatedPathHistory: MutableList<MutableList<Position>> = mutableListOf()
+    internal val calculatedPathHistory: MutableList<MutableList<Position>> = mutableListOf()
 
 ) : Message(
     messageID,
@@ -55,7 +52,7 @@ class Denm(
         if(pathHistory != other.pathHistory) {
             pathHistory = other.pathHistory
             calculatePathHistory()
-            draw()
+            VisualizerInstance.visualizer?.drawDenm(this)
         }
 
         modified = true
@@ -66,68 +63,9 @@ class Denm(
         calculatedPathHistory.clear()
 
         for (pathList in pathHistory) {
-            val paths = mutableListOf<Position>()
-
-            for (path in pathList) {
-                val latBigDecimal = BigDecimal(refPos.lat).add(BigDecimal(path.lat).divide(BigDecimal(10000000.0), 7, RoundingMode.HALF_UP))
-                val lonBigDecimal = BigDecimal(refPos.lon).add(BigDecimal(path.lon).divide(BigDecimal(10000000.0), 7, RoundingMode.HALF_UP))
-                val altDouble = refPos.alt + (path.alt / 100.0)
-
-                paths.add(Position(latBigDecimal.toDouble(), lonBigDecimal.toDouble(), altDouble))
-            }
-
-            calculatedPathHistory.add(paths)
-        }
-    }
-
-    override fun draw() {
-        val position = originPosition ?: return
-        val visualizer = VisualizerInstance.visualizer ?: return
-
-        val icon = when(causeCode) {
-            0 -> R.drawable.denm_general
-            1 -> R.drawable.denm_traffic
-            2 -> R.drawable.denm_accident
-            3 -> R.drawable.denm_roadwork
-            6 -> R.drawable.denm_weather
-            9 -> R.drawable.denm_road_condition
-            10 -> R.drawable.denm_road_obstacle
-            11 -> R.drawable.denm_road_animal
-            12 -> R.drawable.denm_road_human
-            14 -> R.drawable.denm_car
-            15 -> R.drawable.denm_emergency
-            17 -> R.drawable.denm_weather
-            19 -> R.drawable.denm_weather
-            26 -> R.drawable.denm_car
-            27 -> R.drawable.denm_traffic
-            91 -> R.drawable.denm_breakdown
-            92 -> R.drawable.denm_accident
-            93 -> R.drawable.denm_human_problem
-            94 -> R.drawable.denm_car
-            95 -> R.drawable.denm_emergency
-            96 -> R.drawable.denm_dangerous_curve
-            97 -> R.drawable.denm_car
-            98 -> R.drawable.denm_car
-            99 -> R.drawable.denm_general
-            else -> R.drawable.denm_general
-        }
-
-        for(i in calculatedPathHistory.indices) {
-            val laneID = "${stationID}${sequenceNumber}${i}".toLong()
-            visualizer.drawLine(laneID, calculatedPathHistory[i], R.color.map_line_denm)
-        }
-
-        val id = "${stationID}${sequenceNumber}".toLong()
-        visualizer.drawPoint(id, position.lat, position.lon, icon)
-    }
-
-    override fun remove() {
-        val visualizer = VisualizerInstance.visualizer ?: return
-        visualizer.removePoint("${stationID}${sequenceNumber}".toLong())
-
-        for(i in calculatedPathHistory.indices) {
-            val laneID = "${stationID}${sequenceNumber}${i}".toLong()
-            visualizer.removeLine(laneID)
+            calculatedPathHistory.add(
+                calculatePathHistory(refPos, pathList).toMutableList()
+            )
         }
     }
 

@@ -29,9 +29,7 @@ class Cam(
     var vehicleLights: VehicleLights?,
     var timeEpoch: Double, //last update
 
-    // POSSIBLE UNUSED
-    var lastSremUpdate: Int = 0,
-    var isSrcAttention: Boolean = false
+    internal var calculatedPathHistory: MutableList<Position> = mutableListOf()
 
 ) : Message(
     messageID,
@@ -49,7 +47,12 @@ class Cam(
 
         other.speed?.let { speed = it }
         other.heading?.let { heading = it }
-        other.path.let { path = it }
+
+        if(other.path != path) {
+            other.path.let { path = it }
+            calculatePathOffset()
+        }
+
         other.vehicleLength?.let { vehicleLength = it }
         other.vehicleWidth?.let { vehicleWidth = it }
         other.vehicleRole?.let { vehicleRole = it }
@@ -57,33 +60,12 @@ class Cam(
 
         timeEpoch = other.timeEpoch
         modified = true
-
-        draw()
     }
 
-    override fun draw() {
-        val visualizer = VisualizerInstance.visualizer ?: return
-        val position = originPosition ?: return
-        val drawable = when(stationType) {
-            1 -> R.drawable.pedestrian_icon
-            2 -> R.drawable.cyclist_icon
-            3 -> R.drawable.moped_icon
-            4 -> R.drawable.motorbike_icon
-            5 -> R.drawable.car_icon
-            6 -> R.drawable.bus_icon
-            7 -> R.drawable.light_truck_icon
-            8 -> R.drawable.heavy_truck_icon
-            10 -> R.drawable.ambulance_icon // Special Vehicle?
-            11 -> R.drawable.tram_icon
-            15 -> R.drawable.roadside_unit_icon
-            else -> R.drawable.unknown_icon
-        }
-        visualizer.drawPoint(stationID, position.lat, position.lon, drawable)
-    }
-
-    override fun remove() {
-        val visualizer = VisualizerInstance.visualizer ?: return
-        visualizer.removePoint(stationID)
+    fun calculatePathOffset() {
+        val refPos = originPosition ?: return
+        val pathOffset = path ?: return
+        calculatedPathHistory = calculatePathHistory(refPos, pathOffset).toMutableList()
     }
 
     fun getRoleString(): String {

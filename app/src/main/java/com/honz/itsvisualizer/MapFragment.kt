@@ -1,7 +1,6 @@
 package com.honz.itsvisualizer
 
 import android.Manifest
-import android.animation.ObjectAnimator
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -10,14 +9,11 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.animation.doOnEnd
-import androidx.core.animation.doOnStart
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -73,10 +69,8 @@ class MapFragment : Fragment() {
     private lateinit var connectionToggleFab: FloatingActionButton
     private lateinit var cameraCenteringToggleFab: FloatingActionButton
 
-    // TEST
     private lateinit var notificationFAB: FloatingActionButton
     private lateinit var detailsCard: MaterialCardView
-    private var doOffsetMap = false
 
     private var isTripSessionStarted = false
     private var centerCamera = true
@@ -119,9 +113,8 @@ class MapFragment : Fragment() {
     }
 
     private val onMapClickListener = OnMapClickListener {
-        if(doOffsetMap) {
-            doOffsetMap = false
-            displayDetailsCard()
+        if(VisualizerInstance.visualizer?.detailsCardOpened == true) {
+            VisualizerInstance.visualizer?.removeCurrentFocused(true)
             true
         } else false
     }
@@ -171,21 +164,19 @@ class MapFragment : Fragment() {
         lastLocation?.let { updateCameraPosition(it) }
 
         // Visualization
-        VisualizerInstance.visualizer = Visualizer(mapView, view.context.applicationContext)
+        detailsCard = view.findViewById(R.id.detailsCard)
+
+        VisualizerInstance.visualizer = Visualizer(view.context.applicationContext, mapView, detailsCard)
         lifecycleScope.launch {
             MessageStorage.drawAll()
         }
 
-        // TEST
         mapView.getMapboxMap().addOnMapClickListener(onMapClickListener)
 
         notificationFAB = view.findViewById(R.id.notificationTestFAB)
         notificationFAB.setOnClickListener {
-            doOffsetMap = !doOffsetMap
-            displayDetailsCard()
+            VisualizerInstance.visualizer?.removeCurrentFocused(true)
         }
-
-        detailsCard = view.findViewById(R.id.detailsCard)
 
         return view
     }
@@ -296,7 +287,7 @@ class MapFragment : Fragment() {
         var xOffset = 0.0f
         val yOffset = mapView.height * 0.5f
 
-        if(doOffsetMap) {
+        if(VisualizerInstance.visualizer?.detailsCardOpened == true) {
             xOffset = mapView.width * 0.25f
         }
 
@@ -325,35 +316,6 @@ class MapFragment : Fragment() {
         }
         else {
             cameraCenteringToggleFab.setImageResource(R.drawable.location_off)
-        }
-    }
-
-    private fun displayDetailsCard() {
-        if(doOffsetMap) {
-            Log.i("[ANIMATOR]", "Show Animation")
-            val initialX = -detailsCard.width.toFloat()
-            val finalX = 0f
-
-            val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
-            animator.duration = 500
-
-            animator.doOnStart {
-                detailsCard.visibility = View.VISIBLE
-            }
-            animator.start()
-        }
-        else {
-            Log.i("[ANIMATOR]", "Hide Animation")
-            val initialX = 0f
-            val finalX = -detailsCard.width.toFloat()
-
-            val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
-            animator.duration = 1000
-            animator.doOnEnd {
-                detailsCard.visibility = View.INVISIBLE
-
-            }
-            animator.start()
         }
     }
 
