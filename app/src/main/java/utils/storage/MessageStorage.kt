@@ -1,8 +1,5 @@
 package utils.storage
 
-import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -13,6 +10,7 @@ import utils.storage.data.Request
 import utils.storage.data.Spatem
 import utils.storage.data.Srem
 import utils.storage.data.Ssem
+import utils.visualization.VisualizerInstance
 
 object MessageStorage {
     private val mutex = Mutex()
@@ -35,8 +33,7 @@ object MessageStorage {
                 val index = denmList.indexOf(existingDenm)
 
                 if(data.termination) {
-                    // TODO: Possible problem with status notification
-                    denmList[index].remove()
+                    VisualizerInstance.visualizer?.removeDenm(denmList[index])
                     denmList.removeAt(index)
                     return
                 }
@@ -44,7 +41,7 @@ object MessageStorage {
             } else {
                 denmList.add(data)
                 data.calculatePathHistory()
-                data.draw()
+                VisualizerInstance.visualizer?.drawDenm(data)
             }
         }
     }
@@ -58,9 +55,11 @@ object MessageStorage {
 
             if (existingCam != null) {
                 existingCam.update(data)
+                VisualizerInstance.visualizer?.drawCam(existingCam)
             } else {
+                data.calculatePathOffset()
                 camList.add(data)
-                data.draw()
+                VisualizerInstance.visualizer?.drawCam(data)
             }
         }
     }
@@ -86,7 +85,7 @@ object MessageStorage {
                 if(matchingMapem != null) {
                     matchingMapem.latestSpatem = intersection
                     matchingMapem.modified = true
-                    matchingMapem.draw()
+                    VisualizerInstance.visualizer?.drawMapem(matchingMapem)
                 }
             }
         }
@@ -100,12 +99,13 @@ object MessageStorage {
             val existingMapem = mapemList.find { it.intersectionID == data.intersectionID }
 
             if (existingMapem != null) {
+                // Not redrawing, because not expecting sudden change in intersection geometry
                 val index = mapemList.indexOf(existingMapem)
                 mapemList[index].modified = true
             } else {
                 mapemList.add(data)
                 data.prepareForDraw()
-                data.draw()
+                VisualizerInstance.visualizer?.drawMapem(data)
             }
         }
     }
@@ -228,7 +228,7 @@ object MessageStorage {
                 if (denm.modified)
                     denm.modified = false
                 else {
-                    denm.remove()
+                    VisualizerInstance.visualizer?.removeDenm(denm)
                     denmIterator.remove()
                 }
             }
@@ -240,7 +240,7 @@ object MessageStorage {
                 if (cam.modified)
                     cam.modified = false
                 else {
-                    cam.remove()
+                    VisualizerInstance.visualizer?.removeCam(cam)
                     camIterator.remove()
                 }
             }
@@ -262,7 +262,7 @@ object MessageStorage {
                 if (mapem.modified)
                     mapem.modified = false
                 else {
-                    mapem.remove()
+                    VisualizerInstance.visualizer?.removeMapem(mapem)
                     mapemIterator.remove()
                 }
             }
@@ -291,9 +291,9 @@ object MessageStorage {
 
     suspend fun drawAll() {
         mutex.withLock {
-            denmList.forEach { it.draw() }
-            camList.forEach { it.draw() }
-            mapemList.forEach { it.draw() }
+            denmList.forEach { VisualizerInstance.visualizer?.drawDenm(it) }
+            camList.forEach { VisualizerInstance.visualizer?.drawCam(it) }
+            mapemList.forEach {  VisualizerInstance.visualizer?.drawMapem(it) }
         }
     }
 
@@ -302,6 +302,8 @@ object MessageStorage {
      */
     suspend fun clearStorage() {
         mutex.withLock {
+            VisualizerInstance.visualizer?.removeAllMarkers()
+
             denmList.clear()
             camList.clear()
             spatemList.clear()

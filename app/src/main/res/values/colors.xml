@@ -7,6 +7,7 @@
     <color name="gray_400">#FFBDBDBD</color>
     <color name="gray_600">#FF757575</color>
 
-    <color name="map_line_color">#2196F3</color>
     <color name="map_line_denm">#FFFF00</color>
+    <color name="map_line_cam">#2196F3</color>
+    <color name="map_line_mapem">#000000</color>
 </resources>

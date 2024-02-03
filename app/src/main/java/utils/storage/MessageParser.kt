@@ -72,7 +72,7 @@ class MessageParser(private val context: Context) {
                     "[ITS]",
                     "Received [$protocol] from station ID: $stationID"
                 )*/
-                sendNotification(StatusColor.GREEN, "Received [$protocol] from station ID: $stationID")
+                sendNotification("Received [$protocol] from station ID: $stationID")
             }
         }
         catch (e: Exception) {
@@ -80,9 +80,9 @@ class MessageParser(private val context: Context) {
         }
     }
 
-    private fun sendNotification(icon: StatusColor, text: String) {
+    private fun sendNotification(text: String) {
         val statusIntent = Intent("itsVisualizer.SET_STATUS")
-        statusIntent.putExtra("statusImg", icon.value)
+        statusIntent.putExtra("statusImg", StatusColor.GREEN)
         statusIntent.putExtra("statusStr", text)
         LocalBroadcastManager.getInstance(context).sendBroadcast(statusIntent)
     }
@@ -252,9 +252,9 @@ class MessageParser(private val context: Context) {
                     .getJSONObject("its.PathPoint_element")
                     .getJSONObject("its.pathPosition_element")
 
-                val deltaLat = pathData.getString("its.deltaLatitude").toDouble() / 10000000.0
-                val deltaLon = pathData.getString("its.deltaLongitude").toDouble() / 10000000.0
-                val deltaAlt = pathData.getString("its.deltaLongitude").toDouble() / 100.0
+                val deltaLat = pathData.getString("its.deltaLatitude").toDouble()
+                val deltaLon = pathData.getString("its.deltaLongitude").toDouble()
+                val deltaAlt = pathData.getString("its.deltaLongitude").toDouble()
 
                 pathHistory.add(Position(deltaLat, deltaLon, deltaAlt))
             }

@@ -1,5 +1,8 @@
 package utils.storage.data
 
+import java.math.BigDecimal
+import java.math.RoundingMode
+
 data class Position(
     var lat: Double,
     var lon: Double,
@@ -18,6 +21,23 @@ open class Message(
         return ""
     }
 
-    open fun draw() {}
-    open fun remove() {}
+    companion object {
+        fun calculatePathHistory(originPosition: Position, offsets: List<Position>): List<Position> {
+
+            val path: MutableList<Position> = mutableListOf()
+
+            for (offset in offsets) {
+                val latBigDecimal = BigDecimal(originPosition.lat).add(
+                    BigDecimal(offset.lat).divide(
+                        BigDecimal(10000000.0), 7, RoundingMode.HALF_UP))
+                val lonBigDecimal = BigDecimal(originPosition.lon).add(
+                    BigDecimal(offset.lon).divide(
+                        BigDecimal(10000000.0), 7, RoundingMode.HALF_UP))
+                val altDouble = originPosition.alt + (offset.alt / 100.0)
+                path.add(Position(latBigDecimal.toDouble(), lonBigDecimal.toDouble(), altDouble))
+            }
+
+            return path
+        }
+    }
 }
