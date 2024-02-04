@@ -68,10 +68,6 @@ class MessageParser(private val context: Context) {
             }
 
             if(protocol.isNotEmpty()) {
-                /*Log.i(
-                    "[ITS]",
-                    "Received [$protocol] from station ID: $stationID"
-                )*/
                 sendNotification("Received [$protocol] from station ID: $stationID")
             }
         }
@@ -82,7 +78,7 @@ class MessageParser(private val context: Context) {
 
     private fun sendNotification(text: String) {
         val statusIntent = Intent("itsVisualizer.SET_STATUS")
-        statusIntent.putExtra("statusImg", StatusColor.GREEN)
+        statusIntent.putExtra("statusImg", StatusColor.GREEN.value)
         statusIntent.putExtra("statusStr", text)
         LocalBroadcastManager.getInstance(context).sendBroadcast(statusIntent)
     }
@@ -311,7 +307,7 @@ class MessageParser(private val context: Context) {
 
         val vehicleHeading: Float? = (basicVehicleContainerHighFrequencyElement
             ?.getJSONObject("cam.heading_element")
-            ?.optString("its.headingValue")?.toFloatOrNull())?.div(10.0f)?.minus(90.0f)
+            ?.optString("its.headingValue")?.toFloatOrNull())?.div(10.0f)
 
         val vehicleSpeed: Float? = (basicVehicleContainerHighFrequencyElement
             ?.getJSONObject("cam.speed_element")
