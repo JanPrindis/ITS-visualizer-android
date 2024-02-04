@@ -166,7 +166,7 @@ class MapFragment : Fragment() {
         // Visualization
         detailsCard = view.findViewById(R.id.detailsCard)
 
-        VisualizerInstance.visualizer = Visualizer(view.context.applicationContext, mapView, detailsCard)
+        VisualizerInstance.visualizer = Visualizer(view.context.applicationContext, mapView, detailsCard, childFragmentManager)
         lifecycleScope.launch {
             MessageStorage.drawAll()
         }
