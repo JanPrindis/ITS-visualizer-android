@@ -6,15 +6,21 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import com.google.android.material.card.MaterialCardView
 import com.google.gson.Gson
 import com.honz.itsvisualizer.R
+import com.honz.itsvisualizer.cards.CamCard
+import com.honz.itsvisualizer.cards.DenmCard
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
 import com.mapbox.maps.plugin.annotation.annotations
@@ -32,7 +38,12 @@ object VisualizerInstance {
     var visualizer: Visualizer? = null
 }
 
-class Visualizer(fragmentContext: Context, mapView: MapView, private val detailsCard: MaterialCardView) {
+class Visualizer(
+    fragmentContext: Context,
+    mapView: MapView,
+    private val detailsCard: MaterialCardView,
+    private val fragmentManager: FragmentManager
+) {
 
     private val fragmentContextRef: WeakReference<Context> = WeakReference(fragmentContext)
     private val context: Context?
@@ -56,6 +67,7 @@ class Visualizer(fragmentContext: Context, mapView: MapView, private val details
     private val gson = Gson()
 
     var detailsCardOpened = false
+    private var displayedDetailsCard: Fragment? = null
 
     fun drawCam(cam: Cam) {
         val position = cam.originPosition ?: return
@@ -80,8 +92,8 @@ class Visualizer(fragmentContext: Context, mapView: MapView, private val details
             val existingPoint = pointList[cam.stationID]
 
             val currentFocused = focused
-            if (existingPoint != null && currentFocused is Cam) {
-                if(currentFocused.stationID == cam.stationID) {
+            if (existingPoint != null) {
+                if(currentFocused is Cam && currentFocused.stationID == cam.stationID) {
                     setFocused(cam)
                 }
 
@@ -159,8 +171,10 @@ class Visualizer(fragmentContext: Context, mapView: MapView, private val details
             val existingPoint = pointList[id]
 
             val currentFocused = focused
-            if (existingPoint != null && currentFocused is Denm) {
-                if(currentFocused.stationID == denm.stationID && currentFocused.sequenceNumber == denm.sequenceNumber) {
+            if (existingPoint != null) {
+                if( currentFocused is Denm &&
+                    currentFocused.stationID == denm.stationID &&
+                    currentFocused.sequenceNumber == denm.sequenceNumber) {
                     setFocused(denm)
                 }
 
@@ -264,8 +278,8 @@ class Visualizer(fragmentContext: Context, mapView: MapView, private val details
                 val existingPoint = pointList[signal.id]
 
                 val currentFocused = focused
-                if (existingPoint != null && currentFocused is Mapem) {
-                    if(currentFocused.intersectionID == mapem.intersectionID) {
+                if (existingPoint != null) {
+                    if(currentFocused is Mapem && currentFocused.intersectionID == mapem.intersectionID) {
                         setFocused(mapem)
                     }
 
@@ -352,7 +366,14 @@ class Visualizer(fragmentContext: Context, mapView: MapView, private val details
             lineList[cam.stationID] = newLine
         }
 
+        val transaction = fragmentManager.beginTransaction()
+        val fragment = CamCard(cam)
+        transaction.replace(R.id.detailsContainer, fragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
         setDetailsCardState(DetailsCardState.OPEN)
+
+        displayedDetailsCard = fragment
     }
 
     private fun removeFocused(cam: Cam, closeDetailsTab: Boolean) {
@@ -396,7 +417,14 @@ class Visualizer(fragmentContext: Context, mapView: MapView, private val details
             }
         }
 
+        val transaction = fragmentManager.beginTransaction()
+        val fragment = DenmCard(denm)
+        transaction.replace(R.id.detailsContainer, fragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
         setDetailsCardState(DetailsCardState.OPEN)
+
+        displayedDetailsCard = fragment
     }
 
     private fun removeFocused(denm: Denm, closeDetailsTab: Boolean) {
@@ -459,28 +487,32 @@ class Visualizer(fragmentContext: Context, mapView: MapView, private val details
             DetailsCardState.TOGGLE -> !detailsCardOpened
         }
 
-        if(detailsCardOpened) {
-            val initialX = -detailsCard.width.toFloat()
-            val finalX = 0f
+        Handler(Looper.getMainLooper()).post {
+            if (detailsCardOpened) {
+                val initialX = -detailsCard.width.toFloat()
+                val finalX = 0f
 
-            val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
-            animator.duration = 500
+                val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
+                animator.duration = 500
 
-            animator.doOnStart {
-                detailsCard.visibility = View.VISIBLE
+                animator.doOnStart {
+                    detailsCard.visibility = View.VISIBLE
+                }
+                animator.start()
+            } else {
+                val initialX = 0f
+                val finalX = -detailsCard.width.toFloat()
+
+                val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
+                animator.duration = 1000
+                animator.doOnEnd {
+                    detailsCard.visibility = View.INVISIBLE
+                    val transaction = fragmentManager.beginTransaction()
+                    displayedDetailsCard?.let { fragment -> transaction.remove(fragment) }
+                    transaction.commit()
+                }
+                animator.start()
             }
-            animator.start()
-        }
-        else {
-            val initialX = 0f
-            val finalX = -detailsCard.width.toFloat()
-
-            val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
-            animator.duration = 1000
-            animator.doOnEnd {
-                detailsCard.visibility = View.INVISIBLE
-            }
-            animator.start()
         }
     }
 
