@@ -6,81 +6,98 @@
     android:layout_height="match_parent"
     tools:context=".cards.CamCard">
 
-    <!-- TODO: Update blank fragment layout -->
-
     <TextView
         android:id="@+id/cam_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="CAM FRAGMENT"
+        android:text="@string/title_placeholder"
+        android:textSize="16sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/cam_car_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/cam_vehicle_icon"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:src="@drawable/car_icon"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cam_title" />
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/car_top"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toStartOf="@+id/cam_right_signal"
+        app:layout_constraintHeight_percent="0.5"
+        app:layout_constraintStart_toEndOf="@+id/cam_left_signal"
+        app:layout_constraintTop_toBottomOf="@+id/cam_title"
+        app:layout_constraintWidth_percent="0.5"
+        android:importantForAccessibility="no" />
 
-    <TextView
-        android:id="@+id/left_blinker_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="LBlinker"
-        app:layout_constraintEnd_toStartOf="@+id/low_beams_text"
+    <ImageView
+        android:id="@+id/cam_left_signal"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/cam_signal_left_off"
+        app:layout_constraintBottom_toTopOf="@+id/cam_low_beams"
+        app:layout_constraintEnd_toStartOf="@+id/cam_vehicle_icon"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cam_car_icon" />
+        app:layout_constraintTop_toTopOf="@+id/cam_vehicle_icon"
+        android:importantForAccessibility="no" />
 
-    <TextView
-        android:id="@+id/right_blinker_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="RBlinker"
-        app:layout_constraintBaseline_toBaselineOf="@+id/high_beam_lights"
+    <ImageView
+        android:id="@+id/cam_right_signal"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/cam_signal_right_off"
+        app:layout_constraintBottom_toBottomOf="@+id/cam_left_signal"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/high_beam_lights" />
+        app:layout_constraintStart_toEndOf="@+id/cam_vehicle_icon"
+        app:layout_constraintTop_toTopOf="@+id/cam_left_signal"
+        android:importantForAccessibility="no" />
 
-    <TextView
-        android:id="@+id/low_beams_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="LowBeams"
-        app:layout_constraintBaseline_toBaselineOf="@+id/left_blinker_text"
-        app:layout_constraintEnd_toStartOf="@+id/high_beam_lights"
+    <ImageView
+        android:id="@+id/cam_low_beams"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/cam_low_beam_off"
+        app:layout_constraintBottom_toBottomOf="@+id/cam_vehicle_icon"
+        app:layout_constraintEnd_toEndOf="@+id/cam_left_signal"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/left_blinker_text" />
+        app:layout_constraintStart_toStartOf="@+id/cam_left_signal"
+        app:layout_constraintTop_toBottomOf="@+id/cam_left_signal"
+        android:importantForAccessibility="no" />
 
-    <TextView
-        android:id="@+id/high_beam_lights"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="HighBeams"
-        app:layout_constraintBaseline_toBaselineOf="@+id/low_beams_text"
-        app:layout_constraintEnd_toStartOf="@+id/right_blinker_text"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/low_beams_text" />
+    <ImageView
+        android:id="@+id/cam_high_beams"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/cam_high_beam_off"
+        app:layout_constraintBottom_toBottomOf="@+id/cam_vehicle_icon"
+        app:layout_constraintEnd_toEndOf="@+id/cam_right_signal"
+        app:layout_constraintStart_toStartOf="@+id/cam_right_signal"
+        app:layout_constraintTop_toBottomOf="@+id/cam_left_signal"
+        android:importantForAccessibility="no" />
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/low_beams_text">
+        app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
+            android:id="@+id/cam_speed_wrarpper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -91,19 +108,21 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
-                android:text="Speed" />
+                android:text="@string/speed"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/cam_speed_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:text="PLACEHOLDER"
-                android:textAlignment="viewEnd" />
+                android:gravity="end|center_vertical"
+                android:text="@string/placeholder"
+                android:textSize="16sp" />
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/cam_heading_wrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -114,19 +133,21 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
-                android:text="Heading" />
+                android:text="@string/heading"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/cam_heading_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:text="PLACEHOLDER"
-                android:textAlignment="viewEnd" />
+                android:gravity="end|center_vertical"
+                android:text="@string/placeholder"
+                android:textSize="16sp" />
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/cam_dimensions_wrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -137,19 +158,22 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
-                android:text="Dimensions" />
+                android:text="@string/dimensions"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/cam_dimensions_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:text="PLACEHOLDER"
-                android:textAlignment="viewEnd" />
+                android:gravity="end|center_vertical"
+                android:text="@string/placeholder"
+                android:textSize="16sp" />
+
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/cam_role_wrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -160,16 +184,92 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
-                android:text="Vehicle Role" />
+                android:text="@string/vehicle_role"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/cam_vehicle_role"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:gravity="end|center_vertical"
+                android:text="@string/placeholder"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cam_denm_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView13"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:gravity="center_vertical"
-                android:text="PLACEHOLDER"
-                android:textAlignment="viewEnd" />
+                android:text="@string/denm"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/cam_denm_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end|center_vertical"
+                android:text="@string/placeholder"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cam_srem_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView14"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:text="@string/srem"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/cam_srem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end|center_vertical"
+                android:text="@string/placeholder"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cam_ssem_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView15"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:text="@string/ssem"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/cam_ssem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end|center_vertical"
+                android:text="@string/placeholder"
+                android:textSize="16sp" />
         </LinearLayout>
     </LinearLayout>
 

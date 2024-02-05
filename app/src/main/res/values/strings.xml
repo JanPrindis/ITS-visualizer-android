@@ -13,4 +13,13 @@
     <string name="perm_disabled_title">Permission Required</string>
     <string name="perm_disabled_text">Location permissions are required to use this app, please enable them in settings.</string>
     <string name="cancel">Cancel</string>
+    <string name="title_placeholder">TITLE PLACEHOLDER</string>
+    <string name="speed">Speed</string>
+    <string name="placeholder">PLACEHOLDER</string>
+    <string name="heading">Heading</string>
+    <string name="dimensions">Dimensions</string>
+    <string name="vehicle_role">Vehicle Role</string>
+    <string name="denm">DENM</string>
+    <string name="srem">SREM</string>
+    <string name="ssem">SSEM</string>
 </resources>

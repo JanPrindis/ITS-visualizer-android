@@ -27,7 +27,7 @@ class Response(
             "Watch Other Traffic",
             "Granted",
             "Denied",
-            "Max processing time exceeded",
+            "Processing time exc.",
             "Service locked"
         )
         /* dsrc.signalStatusPackage.status

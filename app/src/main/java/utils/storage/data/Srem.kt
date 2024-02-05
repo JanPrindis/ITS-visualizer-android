@@ -11,11 +11,19 @@ class Request(
 ) {
     companion object {
         val requestTypeString: List<String> = listOf(
-            "priorityRequestTypeReserved",
-            "priorityRequest",
-            "priorityRequestUpdate",
-            "priorityCancellation"
+            "Request reserved",
+            "Request",
+            "Request update",
+            "Cancellation"
         )
+    }
+
+    fun getRequestTypeString(): String {
+        return if (requestType in requestTypeString.indices) {
+            requestTypeString[requestType]
+        } else {
+            "Unknown"
+        }
     }
 }
 
