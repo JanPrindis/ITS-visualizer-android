@@ -69,7 +69,6 @@ class MapFragment : Fragment() {
     private lateinit var connectionToggleFab: FloatingActionButton
     private lateinit var cameraCenteringToggleFab: FloatingActionButton
 
-    private lateinit var notificationFAB: FloatingActionButton
     private lateinit var detailsCard: MaterialCardView
 
     private var isTripSessionStarted = false
@@ -173,11 +172,6 @@ class MapFragment : Fragment() {
 
         mapView.getMapboxMap().addOnMapClickListener(onMapClickListener)
 
-        notificationFAB = view.findViewById(R.id.notificationTestFAB)
-        notificationFAB.setOnClickListener {
-            VisualizerInstance.visualizer?.removeCurrentFocused(true)
-        }
-
         return view
     }
 
@@ -276,7 +270,7 @@ class MapFragment : Fragment() {
     /**
      * Eases the camera to position provided in 'location' parameter
      */
-    private fun updateCameraPosition(location: Location) {
+     private fun updateCameraPosition(location: Location) {
         if(!centerCamera) return
 
         val mapAnimationOptions =
