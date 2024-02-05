@@ -29,7 +29,9 @@ class Cam(
     var vehicleLights: VehicleLights?,
     var timeEpoch: Double, //last update
 
-    internal var calculatedPathHistory: MutableList<Position> = mutableListOf()
+    internal var calculatedPathHistory: MutableList<Position> = mutableListOf(),
+    internal var latestDenm: Denm? = null,
+    internal var latestSrem: Srem? = null
 
 ) : Message(
     messageID,

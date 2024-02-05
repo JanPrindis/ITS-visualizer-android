@@ -119,27 +119,17 @@ object MessageStorage {
                 if (srem.stationID == data.stationID) {
                     for (existingRequest in srem.requests) {
                         if (existingRequest.id == data.requests.first().id) {
-                            Log.i(
-                                "[SREM UPDATE]",
-                                "Station [${data.stationID}] updated REQUEST to: [${Request.requestTypeString[data.requests[0].requestType]}(${data.requests[0].requestType})]"
-                            )
                             sremList.remove(srem)
                             data.modified = true
                             sremList.add(data)
-                            tryMatchCam(data.stationID)
+                            camList.find { it.stationID == data.stationID }?.latestSrem = data
                             return
                         }
                     }
                 }
             }
-
-            Log.i(
-                "[NEW SREM]",
-                "Station [${data.stationID}] made REQUEST: [${Request.requestTypeString[data.requests[0].requestType]}(${data.requests[0].requestType})]"
-            )
             sremList.add(data)
-
-            tryMatchCam(data.stationID)
+            camList.find { it.stationID == data.stationID }?.latestSrem = data
         }
     }
 
@@ -154,10 +144,6 @@ object MessageStorage {
 
             for (ssem in ssemList) {
                 if (ssem.intersectionId == data.intersectionId) {
-                    Log.i(
-                        "[SSEM STORAGE]",
-                        "Possible updated response received, overwriting old..."
-                    )
                     ssemList.remove(ssem)
                     data.modified = true
                     ssemList.add(data)
@@ -167,7 +153,6 @@ object MessageStorage {
             }
 
             if (!replaced) {
-                Log.i("[SSEM STORAGE]", "Possible updated response received, overwriting old...")
                 ssemList.add(data)
             }
 
@@ -177,40 +162,14 @@ object MessageStorage {
                     if (data.intersectionId == request.id) {
                         for (response in data.responses) {
                             if (response.requestId == request.requestId) {
-                                Log.i(
-                                    "[REQUEST-FOUND]",
-                                    "Intersection [${data.intersectionId}], Request ID [${response.requestId}], for CAM [${response.requesterStationId}], changed STATE to: [${response.statusString}(${response.statusCode})]"
-                                )
+                                srem.latestSsem = data
                                 srem.modified = true
-                                tryMatchCam(response.requesterStationId)
                                 return
                             }
                         }
                     }
                 }
             }
-
-            for (response in data.responses) {
-                Log.i(
-                    "[REQUEST NOT FOUND]",
-                    "Intersection [${data.intersectionId}], Request ID [${response.requestId}], for CAM [${response.requesterStationId}], changed STATE to: [${response.statusString}(${response.statusCode})]"
-                )
-                tryMatchCam(response.requesterStationId)
-            }
-        }
-    }
-
-    /**
-     * Tries to find if CAM details are available in storage based on 'stationID' parameter.
-     */
-    private suspend fun tryMatchCam(stationID: Long) {
-        val found = camList.find { it.stationID == stationID }
-
-        if(found != null) {
-            Log.i("[CAM FOUND]", "Cam [${found.stationID}] is in storage!")
-        }
-        else {
-            Log.i("[CAM NOT FOUND]", "Cam is NOT in storage!")
         }
     }
 
@@ -273,8 +232,10 @@ object MessageStorage {
                 val srem = sremIterator.next()
                 if (srem.modified)
                     srem.modified = false
-                else
+                else {
+                    camList.find { it.latestSrem == srem }?.latestSrem = null
                     sremIterator.remove()
+                }
             }
 
             // SSEM
@@ -283,8 +244,10 @@ object MessageStorage {
                 val ssem = ssemIterator.next()
                 if (ssem.modified)
                     ssem.modified = false
-                else
+                else {
+                    sremList.find { it.latestSsem == ssem }?.latestSsem = null
                     ssemIterator.remove()
+                }
             }
         }
     }

@@ -29,7 +29,9 @@ class Srem(
     val requestorRole: Int,
     val requestorSubRole: Int,
     val requestorName: String,
-    val routeName: String
+    val routeName: String,
+
+    internal var latestSsem: Ssem? = null
 
 ) : Message(
     messageID,
