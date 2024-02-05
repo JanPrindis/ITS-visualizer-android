@@ -22,9 +22,10 @@ open class Message(
     }
 
     companion object {
-        fun calculatePathHistory(originPosition: Position, offsets: List<Position>): List<Position> {
+        fun calculatePathHistory(refPosition: Position, offsets: List<Position>): List<Position> {
 
             val path: MutableList<Position> = mutableListOf()
+            var originPosition = refPosition
 
             for (offset in offsets) {
                 val latBigDecimal = BigDecimal(originPosition.lat).add(
@@ -35,6 +36,8 @@ open class Message(
                         BigDecimal(10000000.0), 7, RoundingMode.HALF_UP))
                 val altDouble = originPosition.alt + (offset.alt / 100.0)
                 path.add(Position(latBigDecimal.toDouble(), lonBigDecimal.toDouble(), altDouble))
+
+                originPosition = path.last()
             }
 
             return path

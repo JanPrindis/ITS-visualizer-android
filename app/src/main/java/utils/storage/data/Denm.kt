@@ -62,10 +62,12 @@ class Denm(
         val refPos = originPosition ?: return
         calculatedPathHistory.clear()
 
+        var pos = refPos
         for (pathList in pathHistory) {
             calculatedPathHistory.add(
-                calculatePathHistory(refPos, pathList).toMutableList()
+                calculatePathHistory(pos, pathList).toMutableList()
             )
+            pos = pathList.last()
         }
     }
 
