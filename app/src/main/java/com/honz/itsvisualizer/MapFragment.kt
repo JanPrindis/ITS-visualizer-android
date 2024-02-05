@@ -150,11 +150,7 @@ class MapFragment : Fragment() {
 
         // Init mapbox
         mapView = view.findViewById(R.id.mapView)
-        mapView.getMapboxMap().loadStyleUri(Style.TRAFFIC_DAY)
-        mapView.getMapboxMap().addOnMoveListener(onMoveListener)
-        mapView.logo.updateSettings { marginRight = 80.0f }
-        mapView.scalebar.updateSettings { ratio = 0.25f }
-        mapView.compass.updateSettings { marginTop = 100.0f }
+        initMap()
 
         // Location init
         initNavigation()
@@ -235,6 +231,17 @@ class MapFragment : Fragment() {
                 null -> {}
             }
         }
+    }
+
+    /**
+     * Sets up the Mapbox mapView element
+     */
+    private fun initMap() {
+        mapView.getMapboxMap().loadStyleUri(Style.TRAFFIC_DAY)
+        mapView.getMapboxMap().addOnMoveListener(onMoveListener)
+        mapView.logo.updateSettings { marginRight = 80.0f }
+        mapView.scalebar.updateSettings { ratio = 0.25f }
+        mapView.compass.updateSettings { marginTop = 100.0f }
     }
 
     /**

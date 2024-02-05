@@ -128,7 +128,7 @@ class SocketService : Service() {
                 val socket = Socket()
                 val socketAddress = InetSocketAddress(ipAddress, port)
 
-                socket.connect(socketAddress, 1000)
+                socket.connect(socketAddress, 5000)
 
                 // When connected successfully, reset attempt counter
                 attemptCount = 0

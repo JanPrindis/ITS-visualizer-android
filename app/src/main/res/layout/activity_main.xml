@@ -37,7 +37,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:menu="@menu/main_rail_menu"
-        app:menuGravity="center" >
+        app:menuGravity="center">
 
     </com.google.android.material.navigationrail.NavigationRailView>
 

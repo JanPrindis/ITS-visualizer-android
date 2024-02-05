@@ -1,12 +1,10 @@
 package utils.storage
 
-import android.util.Log
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import utils.storage.data.Cam
 import utils.storage.data.Denm
 import utils.storage.data.Mapem
-import utils.storage.data.Request
 import utils.storage.data.Spatem
 import utils.storage.data.Srem
 import utils.storage.data.Ssem
@@ -252,6 +250,9 @@ object MessageStorage {
         }
     }
 
+    /**
+     * Calls draw for all drawable elements
+     */
     suspend fun drawAll() {
         mutex.withLock {
             denmList.forEach { VisualizerInstance.visualizer?.drawDenm(it) }
