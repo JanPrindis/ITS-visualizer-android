@@ -504,7 +504,7 @@ class Visualizer(
                 val finalX = -detailsCard.width.toFloat()
 
                 val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
-                animator.duration = 1000
+                animator.duration = 500
                 animator.doOnEnd {
                     detailsCard.visibility = View.INVISIBLE
                     val transaction = fragmentManager.beginTransaction()
