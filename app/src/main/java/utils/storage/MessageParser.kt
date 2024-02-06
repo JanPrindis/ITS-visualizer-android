@@ -218,8 +218,8 @@ class MessageParser(private val context: Context) {
 
         // CAM
         val camParametersElement = its
-            .getJSONObject("cam.CoopAwareness_element")
-            .getJSONObject("cam.camParameters_element")
+            .optJSONObject("cam.CoopAwareness_element")
+            ?.optJSONObject("cam.camParameters_element") ?: return // If it does not contain base element, then its useless
 
         // Low frequency container
         val basicVehicleContainerLowFrequencyElement = camParametersElement
