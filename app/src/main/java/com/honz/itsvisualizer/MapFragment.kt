@@ -51,6 +51,10 @@ import utils.storage.MessageStorage
 import utils.visualization.Visualizer
 import utils.visualization.VisualizerInstance
 
+object LatestGPSLocation {
+    var location: Location? = null
+}
+
 class MapFragment : Fragment() {
 
     init {
@@ -73,7 +77,6 @@ class MapFragment : Fragment() {
 
     private var isTripSessionStarted = false
     private var centerCamera = true
-    private var lastLocation: Location? = null
 
     private val navigationLocationProvider = NavigationLocationProvider()
 
@@ -88,7 +91,7 @@ class MapFragment : Fragment() {
                 locationMatcherResult.keyPoints
             )
 
-            lastLocation = enhancedLocation
+            LatestGPSLocation.location = enhancedLocation
             updateCameraPosition(enhancedLocation)
         }
 
@@ -156,7 +159,7 @@ class MapFragment : Fragment() {
         initNavigation()
 
         // Camera position update if available
-        lastLocation?.let { updateCameraPosition(it) }
+        LatestGPSLocation.location?.let { updateCameraPosition(it) }
 
         // Visualization
         detailsCard = view.findViewById(R.id.detailsCard)
@@ -208,7 +211,7 @@ class MapFragment : Fragment() {
                     isTripSessionStarted = true
                 }
                 else {
-                    lastLocation?.let { updateCameraPosition(it) }
+                    LatestGPSLocation.location?.let { updateCameraPosition(it) }
                 }
 
             }
@@ -313,7 +316,7 @@ class MapFragment : Fragment() {
 
         if(centerCamera) {
             cameraCenteringToggleFab.setImageResource(R.drawable.location)
-            lastLocation?.let { updateCameraPosition(it) }
+            LatestGPSLocation.location?.let { updateCameraPosition(it) }
         }
         else {
             cameraCenteringToggleFab.setImageResource(R.drawable.location_off)
