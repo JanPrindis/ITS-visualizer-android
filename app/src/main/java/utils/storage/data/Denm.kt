@@ -16,7 +16,7 @@ class Denm(
     var termination: Boolean,
     var causeCode: Int,
     var subCauseCode: Int,
-    var pathHistory: MutableList<MutableList<Position>>,
+    private var pathHistory: MutableList<MutableList<Position>>,
 
     internal val calculatedPathHistory: MutableList<MutableList<Position>> = mutableListOf()
 
