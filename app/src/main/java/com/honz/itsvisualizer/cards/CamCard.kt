@@ -185,6 +185,6 @@ class CamCard(private val cam: Cam) : Fragment() {
             else -> "NW"
         }
 
-        return String.format("%.2f (%s)", headingValue, direction)
+        return String.format("%.2f° (%s)", headingValue, direction)
     }
 }

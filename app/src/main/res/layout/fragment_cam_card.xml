@@ -8,10 +8,13 @@
 
     <TextView
         android:id="@+id/cam_title"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:text="@string/title_placeholder"
+        android:textAlignment="center"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -109,7 +112,8 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:text="@string/speed"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/cam_speed_value"
@@ -134,7 +138,8 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:text="@string/heading"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/cam_heading_value"
@@ -159,7 +164,8 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:text="@string/dimensions"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/cam_dimensions_value"
@@ -185,7 +191,8 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:text="@string/vehicle_role"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/cam_vehicle_role"
@@ -210,7 +217,8 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:text="@string/denm"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/cam_denm_message"
@@ -235,7 +243,8 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:text="@string/srem"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/cam_srem"
@@ -260,7 +269,8 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:text="@string/ssem"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/cam_ssem"
