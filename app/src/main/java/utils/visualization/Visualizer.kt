@@ -21,6 +21,7 @@ import com.google.gson.Gson
 import com.honz.itsvisualizer.R
 import com.honz.itsvisualizer.cards.CamCard
 import com.honz.itsvisualizer.cards.DenmCard
+import com.honz.itsvisualizer.cards.MapemCard
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
 import com.mapbox.maps.plugin.annotation.annotations
@@ -68,6 +69,7 @@ class Visualizer(
 
     var detailsCardOpened = false
     private var displayedDetailsCard: Fragment? = null
+    private var lastSelectedSignalGroup: Int? = null
 
     fun drawCam(cam: Cam) {
         val position = cam.originPosition ?: return
@@ -270,6 +272,7 @@ class Visualizer(
                 }
             }
 
+            mapem.visualizerSignalGroupID = signal.signalGroup
             val json = gson.toJsonTree(mapem)
 
             mapem.currentIconIDs.add(signal.id)
@@ -284,14 +287,14 @@ class Visualizer(
                     }
 
                     // Update existing point
-                    existingPoint.point = Point.fromLngLat(signal.position.lat, signal.position.lon)
+                    existingPoint.point = Point.fromLngLat(signal.position.lon, signal.position.lat)
                     existingPoint.iconImageBitmap = bitmap
                     existingPoint.setData(json)
                     mapemPointAnnotationManager.update(existingPoint)
                 } else {
                     // Create new point
                     val newPointAnnotationOptions = PointAnnotationOptions()
-                        .withPoint(Point.fromLngLat(signal.position.lat, signal.position.lon))
+                        .withPoint(Point.fromLngLat(signal.position.lon, signal.position.lat))
                         .withIconImage(bitmap)
                         .withData(json)
 
@@ -301,6 +304,7 @@ class Visualizer(
                     mapemPointAnnotationManager.iconPadding = 10.0
                     mapemPointAnnotationManager.addClickListener(OnPointAnnotationClickListener {
                         val restoredMapem = gson.fromJson(it.getData(), Mapem::class.java)
+                        lastSelectedSignalGroup = restoredMapem.visualizerSignalGroupID
                         setFocused(restoredMapem)
 
                         true
@@ -320,6 +324,7 @@ class Visualizer(
             pointList.remove(id)
         }
 
+        lastSelectedSignalGroup = null
         mapem.currentIconIDs.clear()
     }
 
@@ -442,16 +447,29 @@ class Visualizer(
     }
 
     private fun setFocused(mapem: Mapem) {
+
+        val selected = lastSelectedSignalGroup ?: return
+        if(mapem.signalGroups.find { it.signalGroup == lastSelectedSignalGroup } == null) return
+
         removeCurrentFocused(false)
         focused = mapem
 
-
+        val transaction = fragmentManager.beginTransaction()
+        val fragment = MapemCard(mapem, selected)
+        transaction.replace(R.id.detailsContainer, fragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
         setDetailsCardState(DetailsCardState.OPEN)
+
+        displayedDetailsCard = fragment
     }
 
     private fun removeFocused(mapem: Mapem, closeDetailsTab: Boolean) {
         focused = null
-        if(closeDetailsTab) setDetailsCardState(DetailsCardState.CLOSE)
+        if(closeDetailsTab) {
+            lastSelectedSignalGroup = null
+            setDetailsCardState(DetailsCardState.CLOSE)
+        }
     }
 
     fun removeCurrentFocused(closeDetailsTab: Boolean) {

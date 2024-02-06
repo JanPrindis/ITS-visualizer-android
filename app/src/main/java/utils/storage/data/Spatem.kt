@@ -64,7 +64,9 @@ class MovementEvent(
     }
 
     fun getStateString(): String {
-        return eventStateString[eventState]
+        return if(eventState in eventStateString.indices)
+            eventStateString[eventState]
+        else ""
     }
 }
 

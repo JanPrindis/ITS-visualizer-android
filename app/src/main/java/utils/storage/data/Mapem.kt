@@ -4,15 +4,15 @@ import kotlin.math.acos
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-enum class Maneuver {
-    LEFT,
-    LEFT_STRAIGHT,
-    STRAIGHT,
-    RIGHT_STRAIGHT,
-    RIGHT,
-    LEFT_RIGHT,
-    ALL,
-    UNKNOWN
+enum class Maneuver(value: Int) {
+    LEFT(0),
+    LEFT_STRAIGHT(1),
+    STRAIGHT(2),
+    RIGHT_STRAIGHT(3),
+    RIGHT(4),
+    LEFT_RIGHT(5),
+    ALL(6),
+    UNKNOWN(7)
 }
 
 data class SignalGroupCompact (
@@ -74,7 +74,8 @@ class Mapem(
     // Visualization
     var latestSpatem: SPATEMIntersection? = null,
     val signalGroups: MutableList<SignalGroupCompact> = mutableListOf(),
-    internal val currentIconIDs: MutableList<Long> = mutableListOf()
+    internal val currentIconIDs: MutableList<Long> = mutableListOf(),
+    internal var visualizerSignalGroupID: Int? = null
 
 ) : Message(
     messageID,

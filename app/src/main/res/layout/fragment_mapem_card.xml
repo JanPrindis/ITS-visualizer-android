@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".cards.MapemCard">
+
+    <TextView
+        android:id="@+id/mapem_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/title_placeholder"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/mapem_left_icon"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/signal_big_red"
+        app:layout_constraintBottom_toTopOf="@+id/mapem_left_direction"
+        app:layout_constraintDimensionRatio="1:2"
+        app:layout_constraintEnd_toStartOf="@+id/mapem_center_icon"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mapem_title" />
+
+    <ImageView
+        android:id="@+id/mapem_center_icon"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/signal_big_red_yellow"
+        app:layout_constraintBottom_toBottomOf="@+id/mapem_left_icon"
+        app:layout_constraintDimensionRatio="1:2"
+        app:layout_constraintEnd_toStartOf="@+id/mapem_right_icon"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/mapem_left_icon"
+        app:layout_constraintTop_toTopOf="@+id/mapem_left_icon" />
+
+    <ImageView
+        android:id="@+id/mapem_right_icon"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/signal_big_green"
+        app:layout_constraintBottom_toBottomOf="@+id/mapem_center_icon"
+        app:layout_constraintDimensionRatio="1:2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/mapem_center_icon"
+        app:layout_constraintTop_toTopOf="@+id/mapem_center_icon" />
+
+    <ImageView
+        android:id="@+id/mapem_left_direction"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/direction_left"
+        app:layout_constraintBottom_toTopOf="@+id/mapem_left_details"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="@+id/mapem_left_icon"
+        app:layout_constraintStart_toStartOf="@+id/mapem_left_icon"
+        android:importantForAccessibility="no" />
+
+    <ImageView
+        android:id="@+id/mapem_center_direction"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/direction_forward"
+        app:layout_constraintBottom_toBottomOf="@+id/mapem_left_direction"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="@+id/mapem_center_icon"
+        app:layout_constraintStart_toStartOf="@+id/mapem_center_icon"
+        app:layout_constraintTop_toTopOf="@+id/mapem_left_direction"
+        android:importantForAccessibility="no" />
+
+    <ImageView
+        android:id="@+id/mapem_right_direction"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="@drawable/direction_right"
+        app:layout_constraintBottom_toBottomOf="@+id/mapem_center_direction"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="@+id/mapem_right_icon"
+        app:layout_constraintStart_toStartOf="@+id/mapem_right_icon"
+        app:layout_constraintTop_toTopOf="@+id/mapem_center_direction"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:id="@+id/mapem_left_details"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/mapem_center_details"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/mapem_left_state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="@string/movement_state" />
+
+        <LinearLayout
+            android:id="@+id/mapem_left_min_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView11"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:text="@string/min"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_left_min_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mapem_left_max_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView18"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:text="@string/max"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_left_max_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mapem_left_likely_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView20"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:text="@string/likely"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_left_likely_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mapem_left_confidence_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView23"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:text="@string/confidence"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_left_confidence_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mapem_center_details"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@+id/mapem_left_details"
+        app:layout_constraintEnd_toStartOf="@+id/mapem_right_details"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/mapem_left_details"
+        app:layout_constraintTop_toTopOf="@+id/mapem_left_details">
+
+        <TextView
+            android:id="@+id/mapem_center_state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/movement_state" />
+
+        <LinearLayout
+            android:id="@+id/mapem_center_min_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView28"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:text="@string/min"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_center_min_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mapem_center_max_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView30"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:text="@string/max"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_center_max_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mapem_center_likely_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView32"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:text="@string/likely"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_center_likely_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mapem_center_confidence_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView34"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/confidence"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_center_confidence_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mapem_right_details"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@+id/mapem_center_details"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/mapem_center_details"
+        app:layout_constraintTop_toTopOf="@+id/mapem_center_details">
+
+        <TextView
+            android:id="@+id/mapem_right_state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/movement_state" />
+
+        <LinearLayout
+            android:id="@+id/mapem_right_min_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView37"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start|center_vertical"
+                android:text="@string/min"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_right_min_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mapem_right_max_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView39"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/max"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_right_max_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mapem_right_likely_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView41"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/likely"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_right_likely_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/mapem_right_confidence_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView43"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/confidence"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/mapem_right_confidence_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical|end"
+                android:text="@string/val" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
