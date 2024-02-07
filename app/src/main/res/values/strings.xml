@@ -24,7 +24,7 @@
     <string name="ssem">SSEM</string>
     <string name="movement_state">Movement state</string>
     <string name="min">Min</string>
-    <string name="val">VAL</string>
+    <string name="val">01:23.4</string>
     <string name="max">Max</string>
     <string name="likely">Likely</string>
     <string name="confidence">Confidence</string>

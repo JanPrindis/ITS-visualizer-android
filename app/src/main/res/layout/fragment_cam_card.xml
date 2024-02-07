@@ -113,7 +113,8 @@
                 android:gravity="center_vertical"
                 android:text="@string/speed"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/cam_speed_value"
@@ -122,7 +123,8 @@
                 android:layout_weight="1"
                 android:gravity="end|center_vertical"
                 android:text="@string/placeholder"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -139,7 +141,8 @@
                 android:gravity="center_vertical"
                 android:text="@string/heading"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/cam_heading_value"
@@ -148,7 +151,8 @@
                 android:layout_weight="1"
                 android:gravity="end|center_vertical"
                 android:text="@string/placeholder"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -165,7 +169,8 @@
                 android:gravity="center_vertical"
                 android:text="@string/dimensions"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/cam_dimensions_value"
@@ -174,7 +179,8 @@
                 android:layout_weight="1"
                 android:gravity="end|center_vertical"
                 android:text="@string/placeholder"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                app:autoSizeTextType="uniform" />
 
         </LinearLayout>
 
@@ -192,7 +198,8 @@
                 android:gravity="center_vertical"
                 android:text="@string/vehicle_role"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/cam_vehicle_role"
@@ -201,7 +208,8 @@
                 android:layout_weight="1"
                 android:gravity="end|center_vertical"
                 android:text="@string/placeholder"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -218,7 +226,8 @@
                 android:gravity="center_vertical"
                 android:text="@string/denm"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/cam_denm_message"
@@ -227,7 +236,8 @@
                 android:layout_weight="1"
                 android:gravity="end|center_vertical"
                 android:text="@string/placeholder"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -244,7 +254,8 @@
                 android:gravity="center_vertical"
                 android:text="@string/srem"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/cam_srem"
@@ -253,7 +264,8 @@
                 android:layout_weight="1"
                 android:gravity="end|center_vertical"
                 android:text="@string/placeholder"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -270,7 +282,8 @@
                 android:gravity="center_vertical"
                 android:text="@string/ssem"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/cam_ssem"
@@ -279,7 +292,8 @@
                 android:layout_weight="1"
                 android:gravity="end|center_vertical"
                 android:text="@string/placeholder"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
     </LinearLayout>
 

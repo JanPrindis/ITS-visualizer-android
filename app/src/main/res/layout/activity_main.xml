@@ -9,15 +9,17 @@
     <TextView
         android:id="@+id/statusDescription"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:drawablePadding="4dp"
         android:gravity="center_vertical"
+        android:maxLines="1"
         android:text="@string/disconnected"
+        app:drawableLeftCompat="@drawable/circle_red"
+        app:layout_constraintBottom_toTopOf="@+id/container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/navigation_rail"
-        app:layout_constraintTop_toTopOf="parent"
-        android:drawablePadding="4dp"
-        app:drawableLeftCompat="@drawable/circle_red" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
         android:id="@+id/container"

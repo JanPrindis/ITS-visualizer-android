@@ -73,36 +73,36 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/direction_left"
         app:layout_constraintBottom_toTopOf="@+id/mapem_left_details"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="@+id/mapem_left_icon"
-        app:layout_constraintStart_toStartOf="@+id/mapem_left_icon"
-        android:importantForAccessibility="no" />
+        app:layout_constraintStart_toStartOf="@+id/mapem_left_icon" />
 
     <ImageView
         android:id="@+id/mapem_center_direction"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/direction_forward"
         app:layout_constraintBottom_toBottomOf="@+id/mapem_left_direction"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="@+id/mapem_center_icon"
         app:layout_constraintStart_toStartOf="@+id/mapem_center_icon"
-        app:layout_constraintTop_toTopOf="@+id/mapem_left_direction"
-        android:importantForAccessibility="no" />
+        app:layout_constraintTop_toTopOf="@+id/mapem_left_direction" />
 
     <ImageView
         android:id="@+id/mapem_right_direction"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/direction_right"
         app:layout_constraintBottom_toBottomOf="@+id/mapem_center_direction"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="@+id/mapem_right_icon"
         app:layout_constraintStart_toStartOf="@+id/mapem_right_icon"
-        app:layout_constraintTop_toTopOf="@+id/mapem_center_direction"
-        android:importantForAccessibility="no" />
+        app:layout_constraintTop_toTopOf="@+id/mapem_center_direction" />
 
     <LinearLayout
         android:id="@+id/mapem_left_details"
@@ -121,8 +121,12 @@
             android:id="@+id/mapem_left_state"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="marquee"
             android:gravity="center_horizontal|center_vertical"
-            android:text="@string/movement_state" />
+            android:maxLines="1"
+            android:text="@string/movement_state"
+            app:autoSizeMinTextSize="8sp"
+            app:autoSizeTextType="uniform" />
 
         <LinearLayout
             android:id="@+id/mapem_left_min_wrapper"
@@ -135,17 +139,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
                 android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/min"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_left_min_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
         </LinearLayout>
 
@@ -160,17 +173,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
                 android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/max"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_left_max_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -184,17 +206,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
                 android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/likely"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_left_likely_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -208,17 +239,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
                 android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/confidence"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_left_confidence_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
     </LinearLayout>
@@ -240,8 +280,12 @@
             android:id="@+id/mapem_center_state"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="marquee"
             android:gravity="center"
-            android:text="@string/movement_state" />
+            android:maxLines="1"
+            android:text="@string/movement_state"
+            app:autoSizeMinTextSize="8sp"
+            app:autoSizeTextType="uniform" />
 
         <LinearLayout
             android:id="@+id/mapem_center_min_wrapper"
@@ -254,17 +298,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
                 android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/min"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_center_min_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -278,17 +331,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
                 android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/max"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_center_max_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -302,17 +364,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
                 android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/likely"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_center_likely_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -326,16 +397,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/confidence"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_center_confidence_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
     </LinearLayout>
 
@@ -356,8 +437,12 @@
             android:id="@+id/mapem_right_state"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="marquee"
             android:gravity="center"
-            android:text="@string/movement_state" />
+            android:maxLines="1"
+            android:text="@string/movement_state"
+            app:autoSizeMinTextSize="8sp"
+            app:autoSizeTextType="uniform" />
 
         <LinearLayout
             android:id="@+id/mapem_right_min_wrapper"
@@ -370,17 +455,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
                 android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/min"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_right_min_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -394,16 +488,25 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:text="@string/max"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_right_max_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -417,16 +520,25 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:text="@string/likely"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_right_likely_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
 
         <LinearLayout
@@ -440,16 +552,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="start|center_vertical"
+                android:maxLines="1"
                 android:text="@string/confidence"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
 
             <TextView
                 android:id="@+id/mapem_right_confidence_value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:layout_weight="2"
+                android:ellipsize="none"
                 android:gravity="center_vertical|end"
-                android:text="@string/val" />
+                android:maxLines="1"
+                android:text="@string/val"
+                app:autoSizeMinTextSize="8sp"
+                app:autoSizeTextType="uniform" />
         </LinearLayout>
     </LinearLayout>
 
