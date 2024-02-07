@@ -9,13 +9,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.honz.itsvisualizer.R
 import utils.storage.data.Denm
-import java.text.DateFormat.getDateInstance
 import java.text.DateFormat.getDateTimeInstance
-import java.text.SimpleDateFormat
-import java.time.LocalDateTime
 import java.util.Date
 
 class DenmCard(private val denm: Denm) : Fragment() {
+
+    private var initialized = false
 
     private lateinit var title: TextView
     private lateinit var icon: ImageView
@@ -35,12 +34,16 @@ class DenmCard(private val denm: Denm) : Fragment() {
         subCauseCode = view.findViewById(R.id.denm_sub_cause_code)
         detectionTime = view.findViewById(R.id.denm_detection_time)
 
+        initialized = true
         updateValues(denm)
 
         return view
     }
 
-    private fun updateValues(denm: Denm) {
+    fun updateValues(denm: Denm) {
+
+        if(!initialized) return
+
         "DENM from station ID: ${denm.originatingStationID}".also { title.text = it }
 
         val drawable = when(denm.causeCode) {

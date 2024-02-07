@@ -64,12 +64,15 @@ class Visualizer(
     private val pointList: MutableMap<Long, PointAnnotation> = mutableMapOf()
     private val lineList: MutableMap<Long, PolylineAnnotation> = mutableMapOf()
 
-    private var focused: Message? = null
     private val gson = Gson()
+    private var focused: Message? = null
+    private var lastSelectedSignalGroup: Int? = null
 
     var detailsCardOpened = false
     private var displayedDetailsCard: Fragment? = null
-    private var lastSelectedSignalGroup: Int? = null
+
+    private val handler = Handler(Looper.getMainLooper())
+    private val fragmentLock = Any()
 
     fun drawCam(cam: Cam) {
         val position = cam.originPosition ?: return
@@ -126,7 +129,8 @@ class Visualizer(
     }
 
     fun removeCam(cam: Cam) {
-        if(focused == cam)
+        val currentFocused = focused
+        if(currentFocused is Cam && currentFocused.stationID == cam.stationID)
             removeFocused(cam, true)
 
         val point = pointList[cam.stationID] ?: return
@@ -207,7 +211,10 @@ class Visualizer(
     }
 
     fun removeDenm(denm: Denm) {
-        if(focused == denm)
+        val currentFocused = focused
+        if( currentFocused is Denm &&
+            currentFocused.stationID == denm.stationID &&
+            currentFocused.sequenceNumber == denm.sequenceNumber)
             removeFocused(denm, true)
 
         val id = "${denm.stationID}${denm.sequenceNumber}".toLong()
@@ -316,7 +323,7 @@ class Visualizer(
 
     fun removeMapem(mapem: Mapem) {
         if(focused == mapem)
-            removeFocused(mapem, true)
+            removeFocused(true)
 
         for (id in mapem.currentIconIDs) {
             val point = pointList[id] ?: return
@@ -346,129 +353,161 @@ class Visualizer(
 
     private fun setFocused(cam: Cam) {
         removeCurrentFocused(false)
-        focused = cam
 
-        val existingLine = lineList[cam.stationID]
+        synchronized(fragmentLock) {
+            focused = cam
 
-        val c = context ?: return
-        val colorInt = ContextCompat.getColor(c, R.color.map_line_cam)
-        val colorHexString = String.format("#%06X", 0xFFFFFF and colorInt)
-
-        if (existingLine != null) {
-            // Update existing line
-            existingLine.points = positionListToPointList(cam.calculatedPathHistory)
-            existingLine.lineColorString = colorHexString
-            camLineAnnotationManager.update(existingLine)
-        } else {
-            // Create new line
-            val newPolyLineAnnotationOptions = PolylineAnnotationOptions()
-                .withPoints(positionListToPointList(cam.calculatedPathHistory))
-                .withLineColor(colorHexString)
-                .withLineOpacity(0.5)
-                .withLineWidth(10.0)
-
-            val newLine = camLineAnnotationManager.create(newPolyLineAnnotationOptions)
-            lineList[cam.stationID] = newLine
-        }
-
-        val transaction = fragmentManager.beginTransaction()
-        val fragment = CamCard(cam)
-        transaction.replace(R.id.detailsContainer, fragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-        setDetailsCardState(DetailsCardState.OPEN)
-
-        displayedDetailsCard = fragment
-    }
-
-    private fun removeFocused(cam: Cam, closeDetailsTab: Boolean) {
-        val line = lineList[cam.stationID] ?: return
-        camLineAnnotationManager.delete(line)
-        lineList.remove(cam.stationID)
-
-        focused = null
-        if(closeDetailsTab) setDetailsCardState(DetailsCardState.CLOSE)
-    }
-
-    private fun setFocused(denm: Denm) {
-        removeCurrentFocused(false)
-        focused = denm
-
-        val c = context ?: return
-        val colorInt = ContextCompat.getColor(c, R.color.map_line_denm)
-        val colorHexString = String.format("#%06X", 0xFFFFFF and colorInt)
-
-        for(i in denm.calculatedPathHistory.indices) {
-
-            val path = denm.calculatedPathHistory[i]
-            val id = "${denm.stationID}${denm.sequenceNumber}${i}".toLong()
-            val existingLine = lineList[id]
+            // Draw line
+            val existingLine = lineList[cam.stationID]
+            val c = context ?: return
+            val colorInt = ContextCompat.getColor(c, R.color.map_line_cam)
+            val colorHexString = String.format("#%06X", 0xFFFFFF and colorInt)
 
             if (existingLine != null) {
                 // Update existing line
-                existingLine.points = positionListToPointList(path)
+                existingLine.points = positionListToPointList(cam.calculatedPathHistory)
                 existingLine.lineColorString = colorHexString
-                denmLineAnnotationManager.update(existingLine)
+                camLineAnnotationManager.update(existingLine)
             } else {
                 // Create new line
                 val newPolyLineAnnotationOptions = PolylineAnnotationOptions()
-                    .withPoints(positionListToPointList(path))
+                    .withPoints(positionListToPointList(cam.calculatedPathHistory))
                     .withLineColor(colorHexString)
                     .withLineOpacity(0.5)
                     .withLineWidth(10.0)
 
-                val newLine = denmLineAnnotationManager.create(newPolyLineAnnotationOptions)
-                lineList[id] = newLine
+                val newLine = camLineAnnotationManager.create(newPolyLineAnnotationOptions)
+                lineList[cam.stationID] = newLine
+            }
+
+            // Show fragment
+            val displayedCard = displayedDetailsCard
+            if (displayedCard is CamCard) {
+                handler.post {
+                    displayedCard.updateValues(cam)
+                }
+            }
+            else {
+                handler.post {
+                    val camCard = CamCard(cam)
+                    updateFragment(camCard)
+                }
             }
         }
+    }
 
-        val transaction = fragmentManager.beginTransaction()
-        val fragment = DenmCard(denm)
-        transaction.replace(R.id.detailsContainer, fragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-        setDetailsCardState(DetailsCardState.OPEN)
+    private fun removeFocused(cam: Cam, closeDetailsTab: Boolean) {
+        val line = lineList[cam.stationID] ?: return
 
-        displayedDetailsCard = fragment
+        synchronized(fragmentLock) {
+            camLineAnnotationManager.delete(line)
+            lineList.remove(cam.stationID)
+
+            focused = null
+
+            if (closeDetailsTab)
+                handler.post { setDetailsCardState(DetailsCardState.CLOSE) }
+        }
+    }
+
+    private fun setFocused(denm: Denm) {
+        removeCurrentFocused(false)
+        synchronized(fragmentLock) {
+            focused = denm
+
+            // Draw line
+            val c = context ?: return
+            val colorInt = ContextCompat.getColor(c, R.color.map_line_denm)
+            val colorHexString = String.format("#%06X", 0xFFFFFF and colorInt)
+
+            for (i in denm.calculatedPathHistory.indices) {
+
+                val path = denm.calculatedPathHistory[i]
+                val id = "${denm.stationID}${denm.sequenceNumber}${i}".toLong()
+                val existingLine = lineList[id]
+
+                if (existingLine != null) {
+                    // Update existing line
+                    existingLine.points = positionListToPointList(path)
+                    existingLine.lineColorString = colorHexString
+                    denmLineAnnotationManager.update(existingLine)
+                } else {
+                    // Create new line
+                    val newPolyLineAnnotationOptions = PolylineAnnotationOptions()
+                        .withPoints(positionListToPointList(path))
+                        .withLineColor(colorHexString)
+                        .withLineOpacity(0.5)
+                        .withLineWidth(10.0)
+
+                    val newLine = denmLineAnnotationManager.create(newPolyLineAnnotationOptions)
+                    lineList[id] = newLine
+                }
+            }
+
+            // Show fragment
+            val displayedCard = displayedDetailsCard
+            if (displayedCard is DenmCard) {
+                handler.post {
+                    displayedCard.updateValues(denm)
+                }
+            }
+            else {
+                handler.post {
+                    val denmCard = DenmCard(denm)
+                    updateFragment(denmCard)
+                }
+            }
+        }
     }
 
     private fun removeFocused(denm: Denm, closeDetailsTab: Boolean) {
+        synchronized(fragmentLock) {
+            for (i in denm.calculatedPathHistory.indices) {
+                val id = "${denm.stationID}${denm.sequenceNumber}${i}".toLong()
 
-        for(i in denm.calculatedPathHistory.indices) {
-            val id = "${denm.stationID}${denm.sequenceNumber}${i}".toLong()
+                val line = lineList[id] ?: return
+                denmLineAnnotationManager.delete(line)
+                lineList.remove(id)
+            }
 
-            val line = lineList[id] ?: return
-            denmLineAnnotationManager.delete(line)
-            lineList.remove(id)
+            focused = null
+            if (closeDetailsTab)
+                handler.post { setDetailsCardState(DetailsCardState.CLOSE) }
         }
-
-        focused = null
-        if(closeDetailsTab) setDetailsCardState(DetailsCardState.CLOSE)
     }
 
     private fun setFocused(mapem: Mapem) {
-
         val selected = lastSelectedSignalGroup ?: return
         if(mapem.signalGroups.find { it.signalGroup == lastSelectedSignalGroup } == null) return
 
         removeCurrentFocused(false)
-        focused = mapem
 
-        val transaction = fragmentManager.beginTransaction()
-        val fragment = MapemCard(mapem, selected)
-        transaction.replace(R.id.detailsContainer, fragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-        setDetailsCardState(DetailsCardState.OPEN)
+        synchronized(fragmentLock) {
+            focused = mapem
 
-        displayedDetailsCard = fragment
+            // Show fragment
+            val displayedCard = displayedDetailsCard
+            if (displayedCard is MapemCard) {
+                handler.post {
+                    displayedCard.updateValues(mapem, selected)
+                }
+            }
+            else {
+                handler.post {
+                    val mapemCard = MapemCard(mapem, selected)
+                    updateFragment(mapemCard)
+                }
+            }
+        }
     }
 
-    private fun removeFocused(mapem: Mapem, closeDetailsTab: Boolean) {
-        focused = null
-        if(closeDetailsTab) {
-            lastSelectedSignalGroup = null
-            setDetailsCardState(DetailsCardState.CLOSE)
+    private fun removeFocused(closeDetailsTab: Boolean) {
+        synchronized(fragmentLock) {
+            focused = null
+            if (closeDetailsTab) {
+                lastSelectedSignalGroup = null
+                handler.post { setDetailsCardState(DetailsCardState.CLOSE) }
+            }
         }
     }
 
@@ -476,12 +515,28 @@ class Visualizer(
         when(val message = focused) {
             is Cam -> removeFocused(message, closeDetailsTab)
             is Denm -> removeFocused(message, closeDetailsTab)
-            is Mapem -> removeFocused(message, closeDetailsTab)
+            is Mapem -> removeFocused(closeDetailsTab)
             null -> return
             else -> {
-                focused = null
-                setDetailsCardState(DetailsCardState.CLOSE)
+                synchronized(fragmentLock) {
+                    focused = null
+                    handler.post {
+                        setDetailsCardState(DetailsCardState.CLOSE)
+                    }
+                }
             }
+        }
+    }
+
+    private fun updateFragment(fragment: Fragment) {
+        if (!fragmentManager.isStateSaved) {
+            val transaction = fragmentManager.beginTransaction()
+            transaction.replace(R.id.detailsContainer, fragment)
+            transaction.addToBackStack(null)
+            transaction.commit()
+            setDetailsCardState(DetailsCardState.OPEN)
+
+            displayedDetailsCard = fragment
         }
     }
 
@@ -505,32 +560,33 @@ class Visualizer(
             DetailsCardState.TOGGLE -> !detailsCardOpened
         }
 
-        Handler(Looper.getMainLooper()).post {
-            if (detailsCardOpened) {
-                val initialX = -detailsCard.width.toFloat()
-                val finalX = 0f
+        if (detailsCardOpened) {
+            val initialX = -detailsCard.width.toFloat()
+            val finalX = 0f
 
-                val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
-                animator.duration = 500
+            val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
+            animator.duration = 500
 
-                animator.doOnStart {
-                    detailsCard.visibility = View.VISIBLE
-                }
-                animator.start()
-            } else {
-                val initialX = 0f
-                val finalX = -detailsCard.width.toFloat()
+            animator.doOnStart {
+                detailsCard.visibility = View.VISIBLE
+            }
+            animator.start()
+        } else {
+            val initialX = 0f
+            val finalX = -detailsCard.width.toFloat()
 
-                val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
-                animator.duration = 500
-                animator.doOnEnd {
-                    detailsCard.visibility = View.INVISIBLE
+            val animator = ObjectAnimator.ofFloat(detailsCard, "translationX", initialX, finalX)
+            animator.duration = 500
+            animator.doOnEnd {
+                detailsCard.visibility = View.INVISIBLE
+                if(!fragmentManager.isStateSaved) {
                     val transaction = fragmentManager.beginTransaction()
                     displayedDetailsCard?.let { fragment -> transaction.remove(fragment) }
                     transaction.commit()
+                    displayedDetailsCard = null
                 }
-                animator.start()
             }
+            animator.start()
         }
     }
 

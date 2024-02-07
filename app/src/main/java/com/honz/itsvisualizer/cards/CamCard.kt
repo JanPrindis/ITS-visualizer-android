@@ -13,6 +13,8 @@ import utils.storage.data.Cam
 
 class CamCard(private val cam: Cam) : Fragment() {
 
+    private var initialized = false
+
     private lateinit var title: TextView
     private lateinit var icon: ImageView
     private lateinit var leftBlinker: ImageView
@@ -62,12 +64,16 @@ class CamCard(private val cam: Cam) : Fragment() {
         sremWrapper = view.findViewById(R.id.cam_srem_wrapper)
         ssemWrapper = view.findViewById(R.id.cam_ssem_wrapper)
 
+        initialized = true
         updateValues(cam)
 
         return view
     }
 
-    private fun updateValues(cam: Cam) {
+    fun updateValues(cam: Cam) {
+
+        if(!initialized) return
+
         "CAM, station ID: ${cam.stationID}".also { title.text = it }
 
         var roleStr = cam.getRoleString()

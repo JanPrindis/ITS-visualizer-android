@@ -1,6 +1,7 @@
 package com.honz.itsvisualizer.cards
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,8 @@ import utils.storage.data.SignalGroupCompact
 import kotlin.math.abs
 
 class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragment() {
+
+    private var initialized = false
 
     private lateinit var title: TextView
 
@@ -118,12 +121,18 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
         confidenceWrapperRight = view.findViewById(R.id.mapem_right_confidence_wrapper)
         confidenceRight = view.findViewById(R.id.mapem_right_confidence_value)
 
+        Log.wtf("MAPEM CARD", "onCreate")
+
+        initialized = true
         updateValues(mapem, signalGroup)
 
         return view
     }
 
-    private fun updateValues(mapem: Mapem, signalGroup: Int) {
+    fun updateValues(mapem: Mapem, signalGroup: Int) {
+
+        if(!initialized) return
+
         // This should never fail, it is protected in Visualizer class, but just to be sure
         val base = mapem.signalGroups.find { it.signalGroup == signalGroup } ?: mapem.signalGroups.first()
         val filteredSignalGroups = findGroupsWithSimilarAngle(base, mapem.signalGroups)
