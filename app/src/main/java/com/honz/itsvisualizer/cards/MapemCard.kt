@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.honz.itsvisualizer.LatestGPSLocation
 import com.honz.itsvisualizer.R
 import utils.storage.data.Maneuver
 import utils.storage.data.Mapem
@@ -17,7 +18,7 @@ import utils.storage.data.MovementState
 import utils.storage.data.SignalGroupCompact
 import kotlin.math.abs
 
-class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragment() {
+class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragment() {
 
     private var initialized = false
 
@@ -35,8 +36,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
     private lateinit var maxLeft: TextView
     private lateinit var likelyWrapperLeft: LinearLayout
     private lateinit var likelyLeft: TextView
-    private lateinit var confidenceWrapperLeft: LinearLayout
-    private lateinit var confidenceLeft: TextView
 
     // Center column
     private lateinit var iconCenter: ImageView
@@ -50,8 +49,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
     private lateinit var maxCenter: TextView
     private lateinit var likelyWrapperCenter: LinearLayout
     private lateinit var likelyCenter: TextView
-    private lateinit var confidenceWrapperCenter: LinearLayout
-    private lateinit var confidenceCenter: TextView
 
     // Right column
     private lateinit var iconRight: ImageView
@@ -65,8 +62,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
     private lateinit var maxRight: TextView
     private lateinit var likelyWrapperRight: LinearLayout
     private lateinit var likelyRight: TextView
-    private lateinit var confidenceWrapperRight: LinearLayout
-    private lateinit var confidenceRight: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -88,8 +83,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
         maxLeft = view.findViewById(R.id.mapem_left_max_value)
         likelyWrapperLeft = view.findViewById(R.id.mapem_left_likely_wrapper)
         likelyLeft = view.findViewById(R.id.mapem_left_likely_value)
-        confidenceWrapperLeft = view.findViewById(R.id.mapem_left_confidence_wrapper)
-        confidenceLeft = view.findViewById(R.id.mapem_left_confidence_value)
 
         // Center
         iconCenter = view.findViewById(R.id.mapem_center_icon)
@@ -103,8 +96,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
         maxCenter = view.findViewById(R.id.mapem_center_max_value)
         likelyWrapperCenter = view.findViewById(R.id.mapem_center_likely_wrapper)
         likelyCenter = view.findViewById(R.id.mapem_center_likely_value)
-        confidenceWrapperCenter = view.findViewById(R.id.mapem_center_confidence_wrapper)
-        confidenceCenter = view.findViewById(R.id.mapem_center_confidence_value)
 
         // Right
         iconRight = view.findViewById(R.id.mapem_right_icon)
@@ -118,8 +109,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
         maxRight = view.findViewById(R.id.mapem_right_max_value)
         likelyWrapperRight = view.findViewById(R.id.mapem_right_likely_wrapper)
         likelyRight = view.findViewById(R.id.mapem_right_likely_value)
-        confidenceWrapperRight = view.findViewById(R.id.mapem_right_confidence_wrapper)
-        confidenceRight = view.findViewById(R.id.mapem_right_confidence_value)
 
         Log.wtf("MAPEM CARD", "onCreate")
 
@@ -129,13 +118,19 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
         return view
     }
 
-    fun updateValues(mapem: Mapem, signalGroup: Int) {
+    fun updateValues(mapem: Mapem, signalGroup: Int?) {
 
         if(!initialized) return
 
-        // This should never fail, it is protected in Visualizer class, but just to be sure
-        val base = mapem.signalGroups.find { it.signalGroup == signalGroup } ?: mapem.signalGroups.first()
-        val filteredSignalGroups = findGroupsWithSimilarAngle(base, mapem.signalGroups)
+        val filteredSignalGroups: List<SignalGroupCompact>
+        val base = mapem.signalGroups.find { it.signalGroup == signalGroup }
+
+        filteredSignalGroups = if(base != null)
+            findGroupsWithSimilarAngle(base, mapem.signalGroups)
+        else {
+            val currentAngle = LatestGPSLocation.location?.bearing?.toDouble() ?: 0.0
+            findGroupsWithSimilarAngle(currentAngle, mapem.signalGroups)
+        }
 
         // Title
         val intersectionName = mapem.intersectionName
@@ -205,14 +200,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
                 likelyWrapperLeft.visibility = View.VISIBLE
                 likelyLeft.text = convertTimeFormatToString(movementEvent.likelyTime - startTime)
             }
-
-            // Confidence
-            if(movementEvent?.confidence == null)
-                confidenceWrapperLeft.visibility = View.GONE
-            else {
-                confidenceWrapperLeft.visibility = View.VISIBLE
-                "${movementEvent.confidence}%".also { confidenceLeft.text = it }
-            }
         }
 
         // Center column
@@ -272,14 +259,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
                 likelyWrapperCenter.visibility = View.VISIBLE
                 likelyCenter.text = convertTimeFormatToString(movementEvent.likelyTime - startTime)
             }
-
-            // Confidence
-            if(movementEvent?.confidence == null)
-                confidenceWrapperCenter.visibility = View.GONE
-            else {
-                confidenceWrapperCenter.visibility = View.VISIBLE
-                "${movementEvent.confidence}%".also { confidenceCenter.text = it }
-            }
         }
 
         // Right column
@@ -338,14 +317,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
                 likelyWrapperRight.visibility = View.VISIBLE
                 likelyRight.text = convertTimeFormatToString(movementEvent.likelyTime - startTime)
             }
-
-            // Confidence
-            if(movementEvent?.confidence == null)
-                confidenceWrapperRight.visibility = View.GONE
-            else {
-                confidenceWrapperRight.visibility = View.VISIBLE
-                "${movementEvent.confidence}%".also { confidenceRight.text = it }
-            }
         }
     }
 
@@ -356,6 +327,20 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int) : Fragme
         val remainingSeconds = seconds % 60
 
         return String.format("%02d:%02d.%d", minutes, remainingSeconds, tenths)
+    }
+
+    private fun findGroupsWithSimilarAngle(currentAngle: Double, signalGroups: List<SignalGroupCompact>) : List<SignalGroupCompact> {
+        val maxAngleOffset = 30.0
+        val result = mutableListOf<SignalGroupCompact>()
+
+        for (group in signalGroups) {
+            val angleOffset = group.angle - currentAngle
+
+            if(abs(angleOffset) <= maxAngleOffset)
+                result.add(group)
+        }
+
+        return result.sortedBy { it.maneuversAllowed }
     }
 
     private fun findGroupsWithSimilarAngle(baseGroup: SignalGroupCompact, signalGroups: List<SignalGroupCompact>) : List<SignalGroupCompact> {
