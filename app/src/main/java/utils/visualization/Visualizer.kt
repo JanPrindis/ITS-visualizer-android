@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.location.Location
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -18,6 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.card.MaterialCardView
 import com.google.gson.Gson
+import com.honz.itsvisualizer.LatestGPSLocation
 import com.honz.itsvisualizer.R
 import com.honz.itsvisualizer.cards.CamCard
 import com.honz.itsvisualizer.cards.DenmCard
@@ -34,6 +36,10 @@ import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.createPolylineAnnotationManager
 import utils.storage.data.*
 import java.lang.ref.WeakReference
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 object VisualizerInstance {
     var visualizer: Visualizer? = null
@@ -57,16 +63,14 @@ class Visualizer(
     private val denmLineAnnotationManager = annotationApi.createPolylineAnnotationManager()
     private val mapemLineAnnotationManager = annotationApi.createPolylineAnnotationManager()
 
-    private val camPointAnnotationManager = annotationApi.createPointAnnotationManager()
-    private val denmPointAnnotationManager = annotationApi.createPointAnnotationManager()
     private val mapemPointAnnotationManager = annotationApi.createPointAnnotationManager()
+    private val denmPointAnnotationManager = annotationApi.createPointAnnotationManager()
+    private val camPointAnnotationManager = annotationApi.createPointAnnotationManager()
 
     private val pointList: MutableMap<Long, PointAnnotation> = mutableMapOf()
     private val lineList: MutableMap<Long, PolylineAnnotation> = mutableMapOf()
 
     private val gson = Gson()
-    private var focused: Message? = null
-    private var lastSelectedSignalGroup: Int? = null
 
     var detailsCardOpened = false
     private var displayedDetailsCard: Fragment? = null
@@ -74,6 +78,37 @@ class Visualizer(
     private val handler = Handler(Looper.getMainLooper())
     private val fragmentLock = Any()
 
+    private var focused: Message? = null
+    private var focusedDistance: Double? = null
+    private var isFocusedByUser = false
+
+    // TODO: Let user be able to change these in settings
+    private var mapemPriority = false
+    private var displayDenmNotifications = true
+    private var displayMapemNotifications = true
+
+    private var lastSelectedSignalGroup: Int? = null
+
+    companion object {
+        /**
+         * If message beyond this distance (in meters) it is considered too far, and removed
+         */
+        const val AUTO_NOTIFICATION_MAX_DIST = 150.0
+
+        /**
+         * If intersection origin is closer than distance (in meters) it is set as visited
+         */
+        const val AUTO_NOTIFICATION_INTERSECTION_VISITED_DIST = 25.0
+
+        /**
+         * If intersection is set as visited and is beyond this distance (in meters) it is considered too far, and removed
+         */
+        const val AUTO_NOTIFICATION_INTERSECTION_REMOVE_VISITED_DIST = 30.0
+    }
+
+    /**
+     * Adds a CAM annotation to map
+     */
     fun drawCam(cam: Cam) {
         val position = cam.originPosition ?: return
         val icon = when(cam.stationType) {
@@ -120,6 +155,8 @@ class Visualizer(
                 camPointAnnotationManager.iconPadding = 10.0
                 camPointAnnotationManager.addClickListener(OnPointAnnotationClickListener {
                     val restoredCam = gson.fromJson(it.getData(), Cam::class.java)
+
+                    synchronized(fragmentLock) {isFocusedByUser = true}
                     setFocused(restoredCam)
 
                     true
@@ -128,6 +165,9 @@ class Visualizer(
         }
     }
 
+    /**
+     * Removes CAM annotation
+     */
     fun removeCam(cam: Cam) {
         val currentFocused = focused
         if(currentFocused is Cam && currentFocused.stationID == cam.stationID)
@@ -138,6 +178,9 @@ class Visualizer(
         pointList.remove(cam.stationID)
     }
 
+    /**
+     * Adds a DENM annotation to map
+     */
     fun drawDenm(denm: Denm) {
         val position = denm.originPosition ?: return
 
@@ -202,14 +245,22 @@ class Visualizer(
                 denmPointAnnotationManager.iconPadding = 10.0
                 denmPointAnnotationManager.addClickListener(OnPointAnnotationClickListener {
                     val restoredDenm = gson.fromJson(it.getData(), Denm::class.java)
+
+                    synchronized(fragmentLock) {isFocusedByUser = true}
                     setFocused(restoredDenm)
 
                     true
                 })
             }
         }
+
+        // Check if it should be displayed automatically
+        displayPriorityNotification(denm)
     }
 
+    /**
+     * Removes DENM annotation
+     */
     fun removeDenm(denm: Denm) {
         val currentFocused = focused
         if( currentFocused is Denm &&
@@ -223,6 +274,9 @@ class Visualizer(
         pointList.remove(id)
     }
 
+    /**
+     * Adds a MAPEM annotation to map
+     */
     fun drawMapem(mapem: Mapem) {
         for (signal in mapem.signalGroups) {
             val spatem = mapem.latestSpatem?.movementStates?.find { it.signalGroup == signal.signalGroup }
@@ -312,6 +366,8 @@ class Visualizer(
                     mapemPointAnnotationManager.addClickListener(OnPointAnnotationClickListener {
                         val restoredMapem = gson.fromJson(it.getData(), Mapem::class.java)
                         lastSelectedSignalGroup = restoredMapem.visualizerSignalGroupID
+
+                        synchronized(fragmentLock) {isFocusedByUser = true}
                         setFocused(restoredMapem)
 
                         true
@@ -319,8 +375,14 @@ class Visualizer(
                 }
             }
         }
+
+        // Check if it should be displayed automatically
+        displayPriorityNotification(mapem)
     }
 
+    /**
+     * Removes MAPEM annotation
+     */
     fun removeMapem(mapem: Mapem) {
         if(focused == mapem)
             removeFocused(true)
@@ -335,6 +397,9 @@ class Visualizer(
         mapem.currentIconIDs.clear()
     }
 
+    /**
+     * Removes all annotations
+     */
     fun removeAllMarkers() {
         removeCurrentFocused(true)
 
@@ -351,6 +416,9 @@ class Visualizer(
         lineList.clear()
     }
 
+    /**
+     * Draws CAM path history and displays details card
+     */
     private fun setFocused(cam: Cam) {
         removeCurrentFocused(false)
 
@@ -396,6 +464,9 @@ class Visualizer(
         }
     }
 
+    /**
+     * Removes CAM path history from map and optionally closes the details card
+     */
     private fun removeFocused(cam: Cam, closeDetailsTab: Boolean) {
         val line = lineList[cam.stationID] ?: return
 
@@ -410,6 +481,9 @@ class Visualizer(
         }
     }
 
+    /**
+     * Highlights affected path by DENM and displays details card
+     */
     private fun setFocused(denm: Denm) {
         removeCurrentFocused(false)
         synchronized(fragmentLock) {
@@ -460,6 +534,9 @@ class Visualizer(
         }
     }
 
+    /**
+     * Removes affected path from map and optionally closes the details card
+     */
     private fun removeFocused(denm: Denm, closeDetailsTab: Boolean) {
         synchronized(fragmentLock) {
             for (i in denm.calculatedPathHistory.indices) {
@@ -476,9 +553,11 @@ class Visualizer(
         }
     }
 
+    /**
+     * Displays detail card containing either user selected signal group, or signal group closest to current GPS heading
+     */
     private fun setFocused(mapem: Mapem) {
-        val selected = lastSelectedSignalGroup ?: return
-        if(mapem.signalGroups.find { it.signalGroup == lastSelectedSignalGroup } == null) return
+        val selected = lastSelectedSignalGroup
 
         removeCurrentFocused(false)
 
@@ -489,18 +568,27 @@ class Visualizer(
             val displayedCard = displayedDetailsCard
             if (displayedCard is MapemCard) {
                 handler.post {
-                    displayedCard.updateValues(mapem, selected)
+                    if(isFocusedByUser)
+                        displayedCard.updateValues(mapem, selected)
+                    else
+                        displayedCard.updateValues(mapem, null)
                 }
             }
             else {
                 handler.post {
-                    val mapemCard = MapemCard(mapem, selected)
+                    val mapemCard = if(isFocusedByUser)
+                        MapemCard(mapem, selected)
+                    else
+                        MapemCard(mapem, null)
                     updateFragment(mapemCard)
                 }
             }
         }
     }
 
+    /**
+     * Removes MAPEM card, optionally closes the details card
+     */
     private fun removeFocused(closeDetailsTab: Boolean) {
         synchronized(fragmentLock) {
             focused = null
@@ -511,6 +599,10 @@ class Visualizer(
         }
     }
 
+
+    /**
+     * Removes current focused card, optionally closes the details card
+     */
     fun removeCurrentFocused(closeDetailsTab: Boolean) {
         when(val message = focused) {
             is Cam -> removeFocused(message, closeDetailsTab)
@@ -528,6 +620,10 @@ class Visualizer(
         }
     }
 
+
+    /**
+     * Changes the currently displayed card for fragment passed as parameter
+     */
     private fun updateFragment(fragment: Fragment) {
         if (!fragmentManager.isStateSaved) {
             val transaction = fragmentManager.beginTransaction()
@@ -545,6 +641,10 @@ class Visualizer(
         CLOSE,
         TOGGLE
     }
+
+    /**
+     * Sets the details card state and animates opening/closing
+     */
     private fun setDetailsCardState(set: DetailsCardState) {
 
         detailsCardOpened = when (set) {
@@ -579,17 +679,23 @@ class Visualizer(
             animator.duration = 500
             animator.doOnEnd {
                 detailsCard.visibility = View.INVISIBLE
+                displayedDetailsCard = null
+                focusedDistance = null
+                focused = null
+                isFocusedByUser = false
                 if(!fragmentManager.isStateSaved) {
                     val transaction = fragmentManager.beginTransaction()
                     displayedDetailsCard?.let { fragment -> transaction.remove(fragment) }
                     transaction.commit()
-                    displayedDetailsCard = null
                 }
             }
             animator.start()
         }
     }
 
+    /**
+     * Translates list of Position to list of Point
+     */
     private fun positionListToPointList(positionList: List<Position>) : List<Point> {
         val points = mutableListOf<Point>()
 
@@ -600,6 +706,9 @@ class Visualizer(
         return points
     }
 
+    /**
+     * Translates Position object to Point object
+     */
     private fun positionToPoint(position: Position) : Point {
         return Point.fromLngLat(position.lon, position.lat)
     }
@@ -625,6 +734,136 @@ class Visualizer(
             drawable.setBounds(0, 0, canvas.width, canvas.height)
             drawable.draw(canvas)
             bitmap
+        }
+    }
+
+    /**
+     * Calculates the distance between two points in meters
+     */
+    private fun calculateHaversineDistance(pos1: Position?, pos2: Location?) : Double? {
+        pos2 ?: return null
+        return calculateHaversineDistance(pos1, Position(pos2.latitude, pos2.longitude, pos2.altitude))
+    }
+
+    /**
+     * Calculates the distance between two points in meters
+     */
+    private fun calculateHaversineDistance(pos1: Position?, pos2: Position?) : Double? {
+
+        if(pos1 == null || pos2 == null) return null
+
+        val earthR = 6371.0
+
+        val dLat = Math.toRadians(pos2.lat - pos1.lat)
+        val dLon = Math.toRadians(pos2.lon - pos1.lon)
+
+        val a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(Math.toRadians(pos1.lat)) * cos(Math.toRadians(pos2.lat)) *
+                sin(dLon / 2) * sin(dLon / 2)
+
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        return earthR * c * 1000.0  // In meters
+    }
+
+    /**
+     * Handles automatic displaying of notifications (details card) on screen
+     */
+    private fun displayPriorityNotification(message: Message) {
+        // Focused messages by user have priority over auto
+        if (isFocusedByUser) return
+
+        // Check if current message type is allowed
+        if(message is Denm && !displayDenmNotifications) return
+        if(message is Mapem && !displayMapemNotifications) return
+
+        // Calculate distance to message origin
+        val newDistance = calculateHaversineDistance(message.originPosition, LatestGPSLocation.location) ?: return
+        val oldDistance = focusedDistance
+
+        // Check if already focused
+        val currentFocused = focused
+        if (message is Denm &&
+            currentFocused is Denm &&
+            currentFocused.stationID == message.stationID &&
+            currentFocused.messageID == message.messageID) {
+
+            // If DENM too far, remove
+            if(newDistance > AUTO_NOTIFICATION_MAX_DIST) {
+                focusedDistance = null
+                removeFocused(true)
+            }
+            else {
+                focusedDistance = newDistance
+                setFocused(message)
+            }
+            return
+        }
+        else if (message is Mapem &&
+            currentFocused is Mapem &&
+            currentFocused.intersectionID == message.intersectionID) {
+
+            focusedDistance = newDistance
+
+            // Check if intersection is not too far or visited and out of range
+            if (newDistance > AUTO_NOTIFICATION_MAX_DIST ||
+                (message.visited && newDistance >= AUTO_NOTIFICATION_INTERSECTION_REMOVE_VISITED_DIST)) {
+                focusedDistance = null
+                removeFocused(true)
+            }
+            else {
+                // If close to intersection, set intersection as visited
+                if(newDistance <= AUTO_NOTIFICATION_INTERSECTION_VISITED_DIST)
+                    message.visited = true
+                setFocused(message)
+            }
+            return
+        }
+
+        // If above cutoff, ignore
+        if(newDistance > AUTO_NOTIFICATION_MAX_DIST) return
+
+        // Decide if message should be focused
+        if(message is Denm) {
+            // Nothing is currently displayed
+            if (oldDistance == null) {
+                focusedDistance = newDistance
+                setFocused(message)
+            }
+
+            // MAPEM is displayed and has priority
+            else if (currentFocused is Mapem && mapemPriority) return
+
+            // DENM is displayed and is closer than current
+            else if (currentFocused is Denm && oldDistance < newDistance) return
+
+            // Display
+            else {
+                focusedDistance = newDistance
+                setFocused(message)
+            }
+        }
+        else if (message is Mapem) {
+            // MAPEM already visited
+            if(message.visited && newDistance > AUTO_NOTIFICATION_INTERSECTION_REMOVE_VISITED_DIST) return
+
+            // Nothing is currently displayed
+            if(oldDistance == null) {
+                focusedDistance = newDistance
+                setFocused(message)
+            }
+
+            // DENM is displayed and has priority
+            else if(currentFocused is Denm && !mapemPriority) return
+
+            // DENM is displayed and is closer than current
+            else if(currentFocused is Mapem && oldDistance < newDistance) return
+
+            // Display
+            else {
+                focusedDistance = newDistance
+                setFocused(message)
+            }
         }
     }
 }
