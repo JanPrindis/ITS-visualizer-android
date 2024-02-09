@@ -215,8 +215,6 @@ class MapFragment : Fragment() {
             MessageStorage.drawAll()
         }
 
-        mapView.getMapboxMap().addOnMapClickListener(onMapClickListener)
-
         return view
     }
 
@@ -267,6 +265,11 @@ class MapFragment : Fragment() {
             }
         },
     )
+
+    override fun onStart() {
+        super.onStart()
+        initNavigation()
+    }
 
     /**
      * Gets boolean representing current state of socket to update FAB image
