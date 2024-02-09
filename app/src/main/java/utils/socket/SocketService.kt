@@ -14,7 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.delay
 import utils.storage.MessageParser
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -26,6 +26,7 @@ import java.net.SocketException
 class SocketService : Service() {
 
     private var serviceJob: Job? = null
+    private var loopStop = false
 
     private var socket: Socket? = null
     private var ipAddress: String? = null
@@ -33,6 +34,8 @@ class SocketService : Service() {
 
     private var attemptConnection  = true
     private var attemptCount = 0
+
+    private var isCoroutineRunning = false
 
     private lateinit var sharedPreferences: SharedPreferences
     private val parser = MessageParser(this)
@@ -85,19 +88,28 @@ class SocketService : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        sharedPreferences = getSharedPreferences("Settings", Context.MODE_PRIVATE)
+        if(!isCoroutineRunning) {
+            isCoroutineRunning = true
+            sharedPreferences = getSharedPreferences("Settings", Context.MODE_PRIVATE)
 
-        // Register listener for update call from settings, and socket control call
-        val settingsFilter = IntentFilter("itsVisualizer.SETTINGS_UPDATED")
-        val socketFilter = IntentFilter("itsVisualizer.TOGGLE_SOCKET_SERVICE")
-        val socketReqFilter = IntentFilter("itsVisualizer.SOCKET_SERVICE_STATE_REQUEST")
-        LocalBroadcastManager.getInstance(this).registerReceiver(settingsReceiver, settingsFilter)
-        LocalBroadcastManager.getInstance(this).registerReceiver(socketReceiver, socketFilter)
-        LocalBroadcastManager.getInstance(this).registerReceiver(stateRequestReceiver, socketReqFilter)
+            // Register listener for update call from settings, and socket control call
+            val settingsFilter = IntentFilter("itsVisualizer.SETTINGS_UPDATED")
+            val socketFilter = IntentFilter("itsVisualizer.TOGGLE_SOCKET_SERVICE")
+            val socketReqFilter = IntentFilter("itsVisualizer.SOCKET_SERVICE_STATE_REQUEST")
+            LocalBroadcastManager.getInstance(this).registerReceiver(settingsReceiver, settingsFilter)
+            LocalBroadcastManager.getInstance(this).registerReceiver(socketReceiver, socketFilter)
+            LocalBroadcastManager.getInstance(this).registerReceiver(stateRequestReceiver, socketReqFilter)
 
-        serviceJob = CoroutineScope(Dispatchers.IO).launch {
-            loadValues()
-            connectToSocket()
+            sendCurrentState()
+
+            serviceJob = CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    loadValues()
+                    connectToSocket()
+                } finally {
+                    isCoroutineRunning = false
+                }
+            }
         }
     }
 
@@ -105,30 +117,29 @@ class SocketService : Service() {
      * Will attempt to connect to TCP socket.
      * If the connection fails, it will try to reconnect unless 'attemptConnection' is set to *false*.
      */
-    private fun connectToSocket() {
-        while(serviceJob?.isActive == true) {
+    private suspend fun connectToSocket() {
+        while(!loopStop) {
             if (!attemptConnection) continue
             if (ipAddress.isNullOrEmpty() || port == -1) {
                 // IP or Port is not set
                 continue
             }
 
-            // Wait before retrying connection
-            when(attemptCount) {
-                0 -> {}
-                in 1..5 -> Thread.sleep(1000)
-                in 6..10 -> Thread.sleep(5000)
-                else -> Thread.sleep(10000)
-            }
+            delay(when (attemptCount) {
+                0 -> 0
+                in 1..5 -> 1000
+                in 6..10 -> 5000
+                else -> 10000
+            })
 
             Log.i("[Socket Service]", "Attempting to connect to $ipAddress:$port")
             sendNotification(StatusColor.YELLOW, "Attempting to connect to $ipAddress:$port")
 
             try {
-                val socket = Socket()
+                socket = Socket()
                 val socketAddress = InetSocketAddress(ipAddress, port)
 
-                socket.connect(socketAddress, 5000)
+                socket?.connect(socketAddress, 3000)
 
                 // When connected successfully, reset attempt counter
                 attemptCount = 0
@@ -136,7 +147,7 @@ class SocketService : Service() {
                 Log.i("[Socket Service]", "Connected!")
                 sendNotification(StatusColor.GREEN, "Connected to $ipAddress:$port!")
 
-                val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
+                val reader = BufferedReader(InputStreamReader(socket?.getInputStream()))
                 val buffer = StringBuilder()
 
                 var jsonObjectMayEnd = false
@@ -144,7 +155,7 @@ class SocketService : Service() {
                 while (serviceJob?.isActive == true) {
                     try {
                         if (!attemptConnection) {
-                            socket.close()
+                            socket?.close()
                             buffer.clear()
                             break
                         }
@@ -159,11 +170,13 @@ class SocketService : Service() {
                                 }
 
                                 buffer.deleteCharAt(buffer.lastIndex)
-                                runBlocking {
-                                    launch(Dispatchers.IO) {
-                                        processData(buffer.toString())
-                                    }.join()
+
+                                try {
+                                    processData(buffer.toString())
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
                                 }
+
                                 buffer.clear()
                             }
                         }
@@ -194,6 +207,7 @@ class SocketService : Service() {
                 attemptCount++
             }
         }
+        stopSelf()
     }
 
     private fun sendNotification(icon: StatusColor, text: String) {
@@ -223,10 +237,15 @@ class SocketService : Service() {
     override fun onDestroy() {
         super.onDestroy()
 
-        serviceJob?.cancel()
+        loopStop = true
+
         socket?.close()
+        serviceJob?.cancel()
+
         LocalBroadcastManager.getInstance(this).unregisterReceiver(settingsReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(socketReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(stateRequestReceiver)
+
+        stopSelf()
     }
 }
