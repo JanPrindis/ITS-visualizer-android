@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -80,6 +81,11 @@ class MapFragment : Fragment() {
 
     private val navigationLocationProvider = NavigationLocationProvider()
 
+    // For external camera track source
+    private var externalCameraTracking = false
+    private var oldCenterCamera = false
+    private var externalCameraTrackingCancelled = false
+
     /**
      * locationObserver passes new location data to update camera position
      */
@@ -92,7 +98,8 @@ class MapFragment : Fragment() {
             )
 
             LatestGPSLocation.location = enhancedLocation
-            updateCameraPosition(enhancedLocation)
+            if(!externalCameraTracking || externalCameraTrackingCancelled)
+                updateCameraPosition(enhancedLocation)
         }
 
         // Not implemented
@@ -104,7 +111,16 @@ class MapFragment : Fragment() {
      */
     private val onMoveListener = object : OnMoveListener {
         override fun onMoveBegin(detector: MoveGestureDetector) {
-            if(centerCamera) setCameraCentering(false)
+
+            // If user moves the map while current GPS position is tracked
+            if(centerCamera)
+                setCameraCentering(false)
+
+            // If user moves the map while external target is tracked
+            if(externalCameraTracking) {
+                externalCameraTrackingCancelled = true
+                oldCenterCamera = false
+            }
         }
 
         override fun onMove(detector: MoveGestureDetector): Boolean {
@@ -148,6 +164,8 @@ class MapFragment : Fragment() {
         // Camera centering FAB
         cameraCenteringToggleFab = view.findViewById(R.id.cameraCenteringToggleFab)
         cameraCenteringToggleFab.setOnClickListener {
+            if(externalCameraTracking)
+                externalCameraTrackingCancelled = true
             setCameraCentering(null)
         }
 
@@ -165,6 +183,34 @@ class MapFragment : Fragment() {
         detailsCard = view.findViewById(R.id.detailsCard)
 
         VisualizerInstance.visualizer = Visualizer(view.context.applicationContext, mapView, detailsCard, childFragmentManager)
+        VisualizerInstance.visualizer?.setOnTrackedPositionChangedListener {
+            // Tracking is off
+            if(it == null) {
+                externalCameraTracking = false
+
+                if(oldCenterCamera && !externalCameraTrackingCancelled)
+                    setCameraCentering(true)
+
+                externalCameraTrackingCancelled = false
+
+                return@setOnTrackedPositionChangedListener
+            }
+            // User decided to cancel tracking
+            if(externalCameraTrackingCancelled) {
+                return@setOnTrackedPositionChangedListener
+            }
+
+            externalCameraTracking = true
+            oldCenterCamera = centerCamera
+
+            setCameraCentering(false)
+
+            val loc = Location("Custom")
+            loc.latitude = it.lat
+            loc.longitude = it.lon
+
+            updateCameraPosition(loc, true)
+        }
         lifecycleScope.launch {
             MessageStorage.drawAll()
         }
@@ -280,8 +326,8 @@ class MapFragment : Fragment() {
     /**
      * Eases the camera to position provided in 'location' parameter
      */
-     private fun updateCameraPosition(location: Location) {
-        if(!centerCamera) return
+     private fun updateCameraPosition(location: Location, externalSource: Boolean = false) {
+        if(!centerCamera && !externalSource) return
 
         val mapAnimationOptions =
             MapAnimationOptions.Builder()
@@ -295,16 +341,30 @@ class MapFragment : Fragment() {
             xOffset = mapView.width * 0.25f
         }
 
-        mapView.camera.easeTo(
-            CameraOptions.Builder()
-                .center(Point.fromLngLat(location.longitude, location.latitude))
-                .bearing(location.bearing.toDouble())
-                .zoom(18.0)
-                .pitch(45.0)
-                .padding(EdgeInsets(yOffset.toDouble(), xOffset.toDouble(), 0.0, 0.0))
-                .build(),
-            mapAnimationOptions
-        )
+        if(externalSource) {
+            mapView.camera.easeTo(
+                CameraOptions.Builder()
+                    .center(Point.fromLngLat(location.longitude, location.latitude))
+                    .bearing(0.0)
+                    .zoom(18.0)
+                    .pitch(0.0)
+                    .padding(EdgeInsets(0.0, xOffset.toDouble(), 0.0, 0.0))
+                    .build(),
+                mapAnimationOptions
+            )
+        }
+        else {
+            mapView.camera.easeTo(
+                CameraOptions.Builder()
+                    .center(Point.fromLngLat(location.longitude, location.latitude))
+                    .bearing(location.bearing.toDouble())
+                    .zoom(18.0)
+                    .pitch(45.0)
+                    .padding(EdgeInsets(yOffset.toDouble(), xOffset.toDouble(), 0.0, 0.0))
+                    .build(),
+                mapAnimationOptions
+            )
+        }
     }
 
     /**
@@ -335,8 +395,13 @@ class MapFragment : Fragment() {
         super.onDestroyView()
 
         VisualizerInstance.visualizer?.removeAllMarkers()
+        VisualizerInstance.visualizer?.removeOnTrackedPositionChangedListener()
         VisualizerInstance.visualizer = null
         MapboxNavigationApp.detach(this)
+
+        externalCameraTracking = false
+        externalCameraTrackingCancelled = false
+        centerCamera = true
     }
 
     override fun onDestroy() {

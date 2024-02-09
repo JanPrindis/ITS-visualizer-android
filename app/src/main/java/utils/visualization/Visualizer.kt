@@ -63,9 +63,9 @@ class Visualizer(
     private val denmLineAnnotationManager = annotationApi.createPolylineAnnotationManager()
     private val mapemLineAnnotationManager = annotationApi.createPolylineAnnotationManager()
 
+    private val camPointAnnotationManager = annotationApi.createPointAnnotationManager()
     private val mapemPointAnnotationManager = annotationApi.createPointAnnotationManager()
     private val denmPointAnnotationManager = annotationApi.createPointAnnotationManager()
-    private val camPointAnnotationManager = annotationApi.createPointAnnotationManager()
 
     private val pointList: MutableMap<Long, PointAnnotation> = mutableMapOf()
     private val lineList: MutableMap<Long, PolylineAnnotation> = mutableMapOf()
@@ -104,6 +104,20 @@ class Visualizer(
          * If intersection is set as visited and is beyond this distance (in meters) it is considered too far, and removed
          */
         const val AUTO_NOTIFICATION_INTERSECTION_REMOVE_VISITED_DIST = 30.0
+    }
+
+    // User selected message position
+    private var onTrackedPositionChangedListener: ((Position?) -> Unit)? = null
+    fun setOnTrackedPositionChangedListener(listener: (Position?) -> Unit) {
+        onTrackedPositionChangedListener = listener
+    }
+
+    fun removeOnTrackedPositionChangedListener() {
+        onTrackedPositionChangedListener = null
+    }
+
+    private fun onTrackedPositionChanged(newValue: Position?) {
+        onTrackedPositionChangedListener?.invoke(newValue)
     }
 
     /**
@@ -461,6 +475,9 @@ class Visualizer(
                     updateFragment(camCard)
                 }
             }
+
+            if(isFocusedByUser)
+                onTrackedPositionChanged(cam.originPosition)
         }
     }
 
@@ -531,6 +548,9 @@ class Visualizer(
                     updateFragment(denmCard)
                 }
             }
+
+            if(isFocusedByUser)
+                onTrackedPositionChanged(denm.originPosition)
         }
     }
 
@@ -583,6 +603,9 @@ class Visualizer(
                     updateFragment(mapemCard)
                 }
             }
+
+            if(isFocusedByUser)
+                onTrackedPositionChanged(mapem.originPosition)
         }
     }
 
@@ -680,9 +703,11 @@ class Visualizer(
             animator.doOnEnd {
                 detailsCard.visibility = View.INVISIBLE
                 displayedDetailsCard = null
-                focusedDistance = null
                 focused = null
+                focusedDistance = null
                 isFocusedByUser = false
+                onTrackedPositionChanged(null)
+
                 if(!fragmentManager.isStateSaved) {
                     val transaction = fragmentManager.beginTransaction()
                     displayedDetailsCard?.let { fragment -> transaction.remove(fragment) }
@@ -752,7 +777,7 @@ class Visualizer(
 
         if(pos1 == null || pos2 == null) return null
 
-        val earthR = 6371.0
+        val earthR = 6371.0 // Earth radius in kilometers
 
         val dLat = Math.toRadians(pos2.lat - pos1.lat)
         val dLon = Math.toRadians(pos2.lon - pos1.lon)
