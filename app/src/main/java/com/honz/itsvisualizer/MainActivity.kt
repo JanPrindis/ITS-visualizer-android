@@ -1,6 +1,7 @@
 package com.honz.itsvisualizer
 
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -12,7 +13,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.navigationrail.NavigationRailView
 import utils.socket.SocketService
 import utils.storage.MessageCleanupService
-import kotlin.system.exitProcess
 
 enum class StatusColor(val value: Int) {
     RED(0),
@@ -65,8 +65,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Services
-    private var socketService: Intent? = null
-    private var cleanerService: Intent? = null
+    private var socketService: ComponentName? = null
+    private var cleanerService: ComponentName? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,7 +90,12 @@ class MainActivity : AppCompatActivity() {
 
         // StatusBar
         statusBar = findViewById(R.id.statusDescription)
+    }
 
+    override fun onStart() {
+        super.onStart()
+
+        // Signals to change status bar
         val statusFilter = IntentFilter("itsVisualizer.SET_STATUS")
         LocalBroadcastManager.getInstance(this).registerReceiver(statusReceiver, statusFilter)
 
@@ -99,15 +104,8 @@ class MainActivity : AppCompatActivity() {
         LocalBroadcastManager.getInstance(this).registerReceiver(socketStateReceiver, stateFilter)
 
         // Services
-        if(socketService == null) {
-            socketService = Intent(this, SocketService::class.java)
-            startService(socketService)
-
-        }
-        if(cleanerService == null){
-            cleanerService = Intent(this, MessageCleanupService::class.java)
-            startService(cleanerService)
-        }
+        socketService = startService(Intent(this, SocketService::class.java))
+        cleanerService = startService(Intent(this, MessageCleanupService::class.java))
     }
 
     private fun fragmentSwitch(fragmentID: Int): Boolean {
@@ -135,15 +133,23 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    override fun onStop() {
+        super.onStop()
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(statusReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(socketStateReceiver)
+
+        stopService(Intent(this, SocketService::class.java))
+        stopService(Intent(this, MessageCleanupService::class.java))
+    }
+
     override fun onDestroy() {
         super.onDestroy()
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(statusReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(socketStateReceiver)
 
-        stopService(socketService)
-        stopService(cleanerService)
-
-        exitProcess(0)
+        stopService(Intent(this, SocketService::class.java))
+        stopService(Intent(this, MessageCleanupService::class.java))
     }
 }
