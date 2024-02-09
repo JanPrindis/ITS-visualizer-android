@@ -4,34 +4,48 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
+import android.text.InputFilter
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.widget.MenuPopupWindow.MenuDropDownListView
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 
 class SettingsFragment : Fragment() {
 
+    // Server settings
     private lateinit var ipInput: TextInputEditText
     private lateinit var portInput: TextInputEditText
-    private lateinit var timeDropdownLayout: TextInputLayout
     private lateinit var timeDropdown: AutoCompleteTextView
+    private lateinit var timeWarning: TextView
+
+    // Map settings
+    private lateinit var themeDropdown: AutoCompleteTextView
+    private lateinit var exteriorsToggle: MaterialSwitch
+    private lateinit var exteriorsOpacityWrapper: LinearLayout
+    private lateinit var exteriorsOpacity: TextInputEditText
+
+    // Camera settings
+    private lateinit var northAlignToggle: MaterialSwitch
+    private lateinit var trackUserSelectedToggle: MaterialSwitch
+    private lateinit var defaultZoom: TextInputEditText
+
+    // Visualization settings
+    private lateinit var showDenmToggle: MaterialSwitch
+    private lateinit var showMapemToggle: MaterialSwitch
+    private lateinit var priorityDropdown: AutoCompleteTextView
+    private lateinit var mapemGeometryToggle: MaterialSwitch
+
+
     private lateinit var saveButton: Button
-
     private lateinit var sharedPreferences: SharedPreferences
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,10 +53,28 @@ class SettingsFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
 
+        // Server
         ipInput = view.findViewById(R.id.ipInput)
         portInput = view.findViewById(R.id.portInput)
-        timeDropdownLayout = view.findViewById(R.id.timeDropdown)
-        timeDropdown = timeDropdownLayout.findViewById(R.id.timeDropdownText)
+        timeDropdown = view.findViewById(R.id.timeDropdownText)
+        timeWarning = view.findViewById(R.id.timeNeverWarning)
+
+        // Map
+        themeDropdown = view.findViewById(R.id.themeDropdownText)
+        exteriorsToggle = view.findViewById(R.id.exteriorsToggle)
+        exteriorsOpacityWrapper = view.findViewById(R.id.opacityWrapper)
+        exteriorsOpacity = view.findViewById(R.id.buildingOpacity)
+
+        // Camera
+        northAlignToggle = view.findViewById(R.id.cameraNorthAlignToggle)
+        defaultZoom = view.findViewById(R.id.cameraZoom)
+
+        // Visualization
+        showDenmToggle = view.findViewById(R.id.displayDenmToggle)
+        showMapemToggle = view.findViewById(R.id.displayMapemToggle)
+        priorityDropdown = view.findViewById(R.id.priorityDropdownText)
+        mapemGeometryToggle = view.findViewById(R.id.displayMapemGeometryToggle)
+
         saveButton = view.findViewById(R.id.saveButton)
 
         // Load settings from Shared Preferences
@@ -58,15 +90,138 @@ class SettingsFragment : Fragment() {
         if(port != -1)
             portInput.setText(port.toString())
 
-        // Dropdown
+        // Time dropdown
         val deletionTimeIndex = sharedPreferences.getInt("deletionTimeIndex", 2)
         val deletionTimeOptions = resources.getStringArray(R.array.deletion_time_period)
 
-        if (deletionTimeIndex >= 0 && deletionTimeIndex < deletionTimeOptions.size) {
+        if (deletionTimeIndex in deletionTimeOptions.indices) {
             timeDropdown.setText(deletionTimeOptions[deletionTimeIndex], false)
-        } else {
+        }
+        else {
             timeDropdown.setText(deletionTimeOptions[2], false)
         }
+
+        // Warning text - display only if 'Never' is selected
+        timeWarning.visibility = if(deletionTimeIndex == deletionTimeOptions.lastIndex)
+            View.VISIBLE
+        else
+            View.GONE
+
+        // Theme dropdown
+        val themeIndex = sharedPreferences.getInt("mapThemeIndex", 0)
+        val themeOptions = resources.getStringArray(R.array.map_theme_selection)
+
+        if (themeIndex in themeOptions.indices) {
+            themeDropdown.setText(themeOptions[themeIndex], false)
+        }
+        else {
+            timeDropdown.setText(themeOptions[0], false)
+        }
+
+        // 3D exteriors toggle
+        val exteriorsEnabled = sharedPreferences.getBoolean("displayBuildingExteriors", false)
+        exteriorsToggle.isChecked = exteriorsEnabled
+        exteriorsOpacityWrapper.visibility = if(exteriorsEnabled)
+            View.VISIBLE
+        else
+            View.GONE
+
+        exteriorsToggle.setOnCheckedChangeListener { _, isChecked ->
+            exteriorsOpacityWrapper.visibility = if(isChecked)
+                View.VISIBLE
+            else
+                View.GONE
+
+        }
+
+        // 3D exteriors opacity
+        val exteriorOpacity = sharedPreferences.getFloat("buildingExteriorsOpacity", 0.5f)
+        exteriorsOpacity.setText(exteriorOpacity.toString())
+
+        val opacityInputFilter = InputFilter { source, _, _, dest, _, _ ->
+            val inputText = dest.toString() + source.toString()
+            if (inputText.isNotEmpty()) {
+                val inputNumber = inputText.toDouble()
+                if (inputNumber in 0.0..1.0) {
+                    null
+                } else {
+                    if(inputNumber > 1.0) {
+                        exteriorsOpacity.setText(1.0.toString())
+                        exteriorsOpacity.setSelection(exteriorsOpacity.length())
+                    }
+                    else {
+                        exteriorsOpacity.setText(0.0.toString())
+                        exteriorsOpacity.setSelection(exteriorsOpacity.length())
+                    }
+                    ""
+                }
+            } else {
+                exteriorsOpacity.setText(exteriorOpacity.toString())
+                exteriorsOpacity.setSelection(exteriorsOpacity.length())
+                ""
+            }
+        }
+        exteriorsOpacity.filters = arrayOf(opacityInputFilter)
+
+        // Camera face North
+        val cameraFaceNorth = sharedPreferences.getBoolean("cameraFaceNorth", false)
+        northAlignToggle.isChecked = cameraFaceNorth
+
+        // Camera track user selected stations
+        val trackUserSelected = sharedPreferences.getBoolean("cameraTrackUserSelected", true)
+        trackUserSelectedToggle.isChecked = trackUserSelected
+
+        // Camera default zoom
+        val zoom = sharedPreferences.getFloat("cameraDefaultZoom", 18.0f)
+        defaultZoom.setText(zoom.toString())
+
+        val zoomInputFilter = InputFilter { source, _, _, dest, _, _ ->
+            val inputText = dest.toString() + source.toString()
+            if (inputText.isNotEmpty()) {
+                val inputNumber = inputText.toDouble()
+                if (inputNumber in 0.0..22.0) {
+                    null
+                } else {
+                    if(inputNumber > 1.0) {
+                        defaultZoom.setText(0.0.toString())
+                        defaultZoom.setSelection(defaultZoom.length())
+                    }
+                    else {
+                        defaultZoom.setText(22.0.toString())
+                        defaultZoom.setSelection(defaultZoom.length())
+                    }
+                    ""
+                }
+            } else {
+                defaultZoom.setText(zoom.toString())
+                defaultZoom.setSelection(defaultZoom.length())
+                ""
+            }
+        }
+        defaultZoom.filters = arrayOf(zoomInputFilter)
+
+        // Denm toggle
+        val autoDenm = sharedPreferences.getBoolean("autoShowDenm", true)
+        showDenmToggle.isChecked = autoDenm
+
+        // Mapem toggle
+        val autoMapem = sharedPreferences.getBoolean("autoShowMapem", true)
+        showMapemToggle.isChecked = autoMapem
+
+        // Auto priority
+        val priorityIndex = sharedPreferences.getInt("autoPriorityIndex", 0)
+        val priorityOptions = resources.getStringArray(R.array.auto_priority)
+
+        if (priorityIndex in priorityOptions.indices) {
+            priorityDropdown.setText(priorityOptions[priorityIndex], false)
+        }
+        else {
+            priorityDropdown.setText(priorityOptions[0], false)
+        }
+
+        // Mapem geometry
+        val mapemGeometry = sharedPreferences.getBoolean("showMapemGeometry", false)
+        mapemGeometryToggle.isChecked = mapemGeometry
 
         // Save button
         saveButton.setOnClickListener { 
@@ -80,9 +235,11 @@ class SettingsFragment : Fragment() {
     private fun saveSettings() {
         synchronized(sharedPreferences) {
             val editor = sharedPreferences.edit()
+
+            // IP address
             editor.putString("ipAddress", ipInput.text.toString())
 
-            // Handle port input
+            // Port
             val portInputText = portInput.text.toString()
             val portValue = if (portInputText.isNotEmpty()) {
                 portInputText.toIntOrNull()
@@ -91,12 +248,49 @@ class SettingsFragment : Fragment() {
             }
             editor.putInt("serverPort", portValue ?: -1)
 
-            // Get dropdown selected item index
+            // Deletion time
             val selectedDeletionTime = timeDropdown.text.toString()
             val deletionTimeOptions = resources.getStringArray(R.array.deletion_time_period)
             val deletionTimeIndex = deletionTimeOptions.indexOf(selectedDeletionTime)
             editor.putInt("deletionTimeIndex", deletionTimeIndex)
 
+            // Theme
+            val selectedTheme = themeDropdown.text.toString()
+            val themeOptions = resources.getStringArray(R.array.map_theme_selection)
+            val themeIndex = themeOptions.indexOf(selectedTheme)
+            editor.putInt("mapThemeIndex", themeIndex)
+
+            // 3D exteriors toggle
+            editor.putBoolean("displayBuildingExteriors", exteriorsToggle.isChecked)
+
+            // 3D exteriors opacity
+            editor.putFloat("buildingExteriorsOpacity", exteriorsOpacity.text.toString().toFloat())
+
+            // Camera face North
+            editor.putBoolean("cameraFaceNorth", northAlignToggle.isChecked)
+
+            // Camera track user selected stations
+            editor.putBoolean("cameraTrackUserSelected", trackUserSelectedToggle.isChecked)
+
+            // Camera default zoom
+            editor.putFloat("cameraDefaultZoom", defaultZoom.text.toString().toFloat())
+
+            // Denm toggle
+            editor.putBoolean("autoShowDenm", showDenmToggle.isChecked)
+
+            // Mapem toggle
+            editor.putBoolean("autoShowMapem", showMapemToggle.isChecked)
+
+            // Auto priority
+            val selectedPriority = priorityDropdown.text.toString()
+            val priorityOptions = resources.getStringArray(R.array.auto_priority)
+            val priorityIndex = priorityOptions.indexOf(selectedPriority)
+            editor.putInt("autoPriorityIndex", priorityIndex)
+
+            // Mapem geometry
+            editor.putBoolean("showMapemGeometry", mapemGeometryToggle.isChecked)
+
+            // Apply changes and notify services
             editor.apply()
 
             val intent = Intent("itsVisualizer.SETTINGS_UPDATED")

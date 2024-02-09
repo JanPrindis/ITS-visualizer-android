@@ -6,7 +6,7 @@
     <string name="server_port">Port</string>
     <string name="delete_old_messages_after">Delete old messages after</string>
     <string name="time_period">Time period</string>
-    <string name="delete_messages_older_than">Delete messages older than:</string>
+    <string name="delete_messages_older_than">Automatically delete old messages every</string>
     <string name="save">Save settings</string>
     <string name="saved_successfully">Saved successfully!</string>
     <string name="disconnected">Disconnected</string>
@@ -28,4 +28,23 @@
     <string name="max">Max</string>
     <string name="likely">Likely</string>
     <string name="confidence">Confidence</string>
+    <string name="server_setup">Server settings</string>
+    <string name="warning_disabling_automatic_message_deletion_may_result_in_performance_issues">Warning! Disabling automatic message deletion may result in performance issues!</string>
+    <string name="map_settings">Map settings</string>
+    <string name="map_theme">Map theme</string>
+    <string name="theme">Theme</string>
+    <string name="show_3d_building_exteriors">Show 3D building exteriors</string>
+    <string name="_3d_building_exterior_opacity">3D building exterior opacity</string>
+    <string name="opacity">Opacity</string>
+    <string name="camera_setup">Camera settings</string>
+    <string name="always_align_camera_to_north">Always align camera to North</string>
+    <string name="default_camera_zoom">Default camera zoom</string>
+    <string name="zoom">Zoom</string>
+    <string name="visualization_setup">Visualization settings</string>
+    <string name="automatically_expand_nearby_denm_messages">Automatically expand nearby DENM messages</string>
+    <string name="automatically_expand_nearby_mapem_spatem_messages">Automatically expand nearby MAPEM/SPATEM messages</string>
+    <string name="automatic_expand_priority">Automatic expand priority</string>
+    <string name="priority">Priority</string>
+    <string name="draw_intersection_geometry">Draw intersection geometry</string>
+    <string name="make_camera_track_user_selected_stations">Make camera track user selected stations</string>
 </resources>
