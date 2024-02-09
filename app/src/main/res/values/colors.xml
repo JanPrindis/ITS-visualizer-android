@@ -9,7 +9,7 @@
 
     <!-- 3D Buildings color -->
     <color  name="map_building_extrusion_color_light">#EDEDED</color>
-    <color  name="map_building_extrusion_color_dark">#433C32</color>
+    <color  name="map_building_extrusion_color_dark">#323943</color>
 
     <!-- Message line colors -->
     <color name="map_line_denm">#FFFF00</color>
