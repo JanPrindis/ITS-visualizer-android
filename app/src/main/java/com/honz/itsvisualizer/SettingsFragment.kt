@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.Editable
 import android.text.InputFilter
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -67,6 +69,7 @@ class SettingsFragment : Fragment() {
 
         // Camera
         northAlignToggle = view.findViewById(R.id.cameraNorthAlignToggle)
+        trackUserSelectedToggle = view.findViewById(R.id.trackUserSelectedToggle)
         defaultZoom = view.findViewById(R.id.cameraZoom)
 
         // Visualization
@@ -107,6 +110,22 @@ class SettingsFragment : Fragment() {
         else
             View.GONE
 
+        timeDropdown.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val selectedDeletionTime = timeDropdown.text.toString()
+                val index = deletionTimeOptions.indexOf(selectedDeletionTime)
+
+                timeWarning.visibility = if(index == deletionTimeOptions.lastIndex)
+                    View.VISIBLE
+                else
+                    View.GONE
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
         // Theme dropdown
         val themeIndex = sharedPreferences.getInt("mapThemeIndex", 0)
         val themeOptions = resources.getStringArray(R.array.map_theme_selection)
@@ -141,18 +160,24 @@ class SettingsFragment : Fragment() {
         val opacityInputFilter = InputFilter { source, _, _, dest, _, _ ->
             val inputText = dest.toString() + source.toString()
             if (inputText.isNotEmpty()) {
-                val inputNumber = inputText.toDouble()
-                if (inputNumber in 0.0..1.0) {
-                    null
-                } else {
-                    if(inputNumber > 1.0) {
-                        exteriorsOpacity.setText(1.0.toString())
-                        exteriorsOpacity.setSelection(exteriorsOpacity.length())
+                try {
+                    val inputNumber = inputText.toDouble()
+                    if (inputNumber in 0.0..1.0) {
+                            null
+                    } else {
+                        if (inputNumber > 1.0) {
+                            exteriorsOpacity.setText(1.0.toString())
+                            exteriorsOpacity.setSelection(exteriorsOpacity.length())
+                        } else {
+                            exteriorsOpacity.setText(0.0.toString())
+                            exteriorsOpacity.setSelection(exteriorsOpacity.length())
+                        }
+                        ""
                     }
-                    else {
-                        exteriorsOpacity.setText(0.0.toString())
-                        exteriorsOpacity.setSelection(exteriorsOpacity.length())
-                    }
+                }
+                catch(e: Exception) {
+                    exteriorsOpacity.setText(exteriorOpacity.toString())
+                    exteriorsOpacity.setSelection(exteriorsOpacity.length())
                     ""
                 }
             } else {
@@ -178,18 +203,24 @@ class SettingsFragment : Fragment() {
         val zoomInputFilter = InputFilter { source, _, _, dest, _, _ ->
             val inputText = dest.toString() + source.toString()
             if (inputText.isNotEmpty()) {
-                val inputNumber = inputText.toDouble()
-                if (inputNumber in 0.0..22.0) {
-                    null
-                } else {
-                    if(inputNumber > 1.0) {
-                        defaultZoom.setText(0.0.toString())
-                        defaultZoom.setSelection(defaultZoom.length())
+                try {
+                    val inputNumber = inputText.toDouble()
+                    if (inputNumber in 0.0..22.0) {
+                        null
+                    } else {
+                        if (inputNumber > 1.0) {
+                            defaultZoom.setText(0.0.toString())
+                            defaultZoom.setSelection(defaultZoom.length())
+                        } else {
+                            defaultZoom.setText(22.0.toString())
+                            defaultZoom.setSelection(defaultZoom.length())
+                        }
+                        ""
                     }
-                    else {
-                        defaultZoom.setText(22.0.toString())
-                        defaultZoom.setSelection(defaultZoom.length())
-                    }
+                }
+                catch(e: Exception) {
+                    defaultZoom.setText(zoom.toString())
+                    defaultZoom.setSelection(defaultZoom.length())
                     ""
                 }
             } else {
@@ -233,68 +264,66 @@ class SettingsFragment : Fragment() {
     }
 
     private fun saveSettings() {
-        synchronized(sharedPreferences) {
-            val editor = sharedPreferences.edit()
+        val editor = sharedPreferences.edit()
 
-            // IP address
-            editor.putString("ipAddress", ipInput.text.toString())
+        // IP address
+        editor.putString("ipAddress", ipInput.text.toString())
 
-            // Port
-            val portInputText = portInput.text.toString()
-            val portValue = if (portInputText.isNotEmpty()) {
-                portInputText.toIntOrNull()
-            } else {
-                null
-            }
-            editor.putInt("serverPort", portValue ?: -1)
-
-            // Deletion time
-            val selectedDeletionTime = timeDropdown.text.toString()
-            val deletionTimeOptions = resources.getStringArray(R.array.deletion_time_period)
-            val deletionTimeIndex = deletionTimeOptions.indexOf(selectedDeletionTime)
-            editor.putInt("deletionTimeIndex", deletionTimeIndex)
-
-            // Theme
-            val selectedTheme = themeDropdown.text.toString()
-            val themeOptions = resources.getStringArray(R.array.map_theme_selection)
-            val themeIndex = themeOptions.indexOf(selectedTheme)
-            editor.putInt("mapThemeIndex", themeIndex)
-
-            // 3D exteriors toggle
-            editor.putBoolean("displayBuildingExteriors", exteriorsToggle.isChecked)
-
-            // 3D exteriors opacity
-            editor.putFloat("buildingExteriorsOpacity", exteriorsOpacity.text.toString().toFloat())
-
-            // Camera face North
-            editor.putBoolean("cameraFaceNorth", northAlignToggle.isChecked)
-
-            // Camera track user selected stations
-            editor.putBoolean("cameraTrackUserSelected", trackUserSelectedToggle.isChecked)
-
-            // Camera default zoom
-            editor.putFloat("cameraDefaultZoom", defaultZoom.text.toString().toFloat())
-
-            // Denm toggle
-            editor.putBoolean("autoShowDenm", showDenmToggle.isChecked)
-
-            // Mapem toggle
-            editor.putBoolean("autoShowMapem", showMapemToggle.isChecked)
-
-            // Auto priority
-            val selectedPriority = priorityDropdown.text.toString()
-            val priorityOptions = resources.getStringArray(R.array.auto_priority)
-            val priorityIndex = priorityOptions.indexOf(selectedPriority)
-            editor.putInt("autoPriorityIndex", priorityIndex)
-
-            // Mapem geometry
-            editor.putBoolean("showMapemGeometry", mapemGeometryToggle.isChecked)
-
-            // Apply changes and notify services
-            editor.apply()
-
-            val intent = Intent("itsVisualizer.SETTINGS_UPDATED")
-            LocalBroadcastManager.getInstance(requireView().context).sendBroadcast(intent)
+        // Port
+        val portInputText = portInput.text.toString()
+        val portValue = if (portInputText.isNotEmpty()) {
+            portInputText.toIntOrNull()
+        } else {
+            null
         }
+        editor.putInt("serverPort", portValue ?: -1)
+
+        // Deletion time
+        val selectedDeletionTime = timeDropdown.text.toString()
+        val deletionTimeOptions = resources.getStringArray(R.array.deletion_time_period)
+        val deletionTimeIndex = deletionTimeOptions.indexOf(selectedDeletionTime)
+        editor.putInt("deletionTimeIndex", deletionTimeIndex)
+
+        // Theme
+        val selectedTheme = themeDropdown.text.toString()
+        val themeOptions = resources.getStringArray(R.array.map_theme_selection)
+        val themeIndex = themeOptions.indexOf(selectedTheme)
+        editor.putInt("mapThemeIndex", themeIndex)
+
+        // 3D exteriors toggle
+        editor.putBoolean("displayBuildingExteriors", exteriorsToggle.isChecked)
+
+        // 3D exteriors opacity
+        editor.putFloat("buildingExteriorsOpacity", exteriorsOpacity.text.toString().toFloat())
+
+        // Camera face North
+        editor.putBoolean("cameraFaceNorth", northAlignToggle.isChecked)
+
+        // Camera track user selected stations
+        editor.putBoolean("cameraTrackUserSelected", trackUserSelectedToggle.isChecked)
+
+        // Camera default zoom
+        editor.putFloat("cameraDefaultZoom", defaultZoom.text.toString().toFloat())
+
+        // Denm toggle
+        editor.putBoolean("autoShowDenm", showDenmToggle.isChecked)
+
+        // Mapem toggle
+        editor.putBoolean("autoShowMapem", showMapemToggle.isChecked)
+
+        // Auto priority
+        val selectedPriority = priorityDropdown.text.toString()
+        val priorityOptions = resources.getStringArray(R.array.auto_priority)
+        val priorityIndex = priorityOptions.indexOf(selectedPriority)
+        editor.putInt("autoPriorityIndex", priorityIndex)
+
+        // Mapem geometry
+        editor.putBoolean("showMapemGeometry", mapemGeometryToggle.isChecked)
+
+        // Apply changes and notify services
+        editor.apply()
+
+        val intent = Intent("itsVisualizer.SETTINGS_UPDATED")
+        LocalBroadcastManager.getInstance(requireView().context).sendBroadcast(intent)
     }
 }

@@ -82,10 +82,12 @@ class Visualizer(
     private var focusedDistance: Double? = null
     private var isFocusedByUser = false
 
-    // TODO: Let user be able to change these in settings
-    private var mapemPriority = false
-    private var displayDenmNotifications = true
-    private var displayMapemNotifications = true
+    // Settings
+    private val sharedPreferences = context?.getSharedPreferences("Settings", Context.MODE_PRIVATE)
+    private val mapemPriority = sharedPreferences?.getInt("autoPriorityIndex", 0) == 0
+    private val displayDenmNotifications = sharedPreferences?.getBoolean("autoShowDenm", true) ?: true
+    private val displayMapemNotifications = sharedPreferences?.getBoolean("autoShowMapem", true) ?: true
+    private val drawMapemGeometry = sharedPreferences?.getBoolean("showMapemGeometry", false) ?: false
 
     private var lastSelectedSignalGroup: Int? = null
 

@@ -7,9 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -28,6 +28,11 @@ import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
 import com.mapbox.maps.MapView
 import com.mapbox.maps.Style
+import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.eq
+import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.get
+import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.literal
+import com.mapbox.maps.extension.style.layers.addLayer
+import com.mapbox.maps.extension.style.layers.generated.FillExtrusionLayer
 import com.mapbox.maps.plugin.LocationPuck2D
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
 import com.mapbox.maps.plugin.animation.camera
@@ -70,21 +75,31 @@ class MapFragment : Fragment() {
         })
     }
 
+    // UI elements
     private lateinit var mapView: MapView
     private lateinit var connectionToggleFab: FloatingActionButton
     private lateinit var cameraCenteringToggleFab: FloatingActionButton
-
     private lateinit var detailsCard: MaterialCardView
 
-    private var isTripSessionStarted = false
-    private var centerCamera = true
-
+    // Navigation
     private val navigationLocationProvider = NavigationLocationProvider()
+    private var isTripSessionStarted = false
+
+    // Camera tracking GPS
+    private var centerCamera = true
 
     // For external camera track source
     private var externalCameraTracking = false
     private var oldCenterCamera = false
     private var externalCameraTrackingCancelled = false
+
+    // Settings
+    private var mapThemeIndex = 0
+    private var displayBuildingExteriors = false
+    private var buildingExteriorOpacity = 0.5f
+    private var cameraFaceNorth = false
+    private var cameraTrackUserSelected = true
+    private var cameraDefaultZoom = 18.0f
 
     /**
      * locationObserver passes new location data to update camera position
@@ -143,7 +158,6 @@ class MapFragment : Fragment() {
         // Signals from SocketService
         val stateFilter = IntentFilter("itsVisualizer.SERVICE_STATE")
         LocalBroadcastManager.getInstance(requireContext()).registerReceiver(stateReceiver, stateFilter)
-
     }
 
     override fun onCreateView(
@@ -151,7 +165,14 @@ class MapFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_map, container, false)
+        val sharedPreferences = requireActivity().applicationContext.getSharedPreferences("Settings", Context.MODE_PRIVATE)
 
+        mapThemeIndex = sharedPreferences.getInt("mapThemeIndex", 0)
+        displayBuildingExteriors = sharedPreferences.getBoolean("displayBuildingExteriors", false)
+        buildingExteriorOpacity = sharedPreferences.getFloat("buildingExteriorsOpacity", 0.5f)
+        cameraFaceNorth = sharedPreferences.getBoolean("cameraFaceNorth", false)
+        cameraTrackUserSelected = sharedPreferences.getBoolean("cameraTrackUserSelected", true)
+        cameraDefaultZoom = sharedPreferences.getFloat("cameraDefaultZoom", 18.0f)
 
         // Connection toggle FAB
         connectionToggleFab = view.findViewById(R.id.connectionToggleFab)
@@ -181,36 +202,39 @@ class MapFragment : Fragment() {
 
         // Visualization
         detailsCard = view.findViewById(R.id.detailsCard)
-
         VisualizerInstance.visualizer = Visualizer(view.context.applicationContext, mapView, detailsCard, childFragmentManager)
-        VisualizerInstance.visualizer?.setOnTrackedPositionChangedListener {
-            // Tracking is off
-            if(it == null) {
-                externalCameraTracking = false
 
-                if(oldCenterCamera && !externalCameraTrackingCancelled)
-                    setCameraCentering(true)
+        if(cameraTrackUserSelected) {
+            VisualizerInstance.visualizer?.setOnTrackedPositionChangedListener {
+                // Tracking is off
+                if (it == null) {
+                    externalCameraTracking = false
 
-                externalCameraTrackingCancelled = false
+                    if (oldCenterCamera && !externalCameraTrackingCancelled)
+                        setCameraCentering(true)
 
-                return@setOnTrackedPositionChangedListener
+                    externalCameraTrackingCancelled = false
+
+                    return@setOnTrackedPositionChangedListener
+                }
+                // User decided to cancel tracking
+                if (externalCameraTrackingCancelled) {
+                    return@setOnTrackedPositionChangedListener
+                }
+
+                externalCameraTracking = true
+                oldCenterCamera = centerCamera
+
+                setCameraCentering(false)
+
+                val loc = Location("Custom")
+                loc.latitude = it.lat
+                loc.longitude = it.lon
+
+                updateCameraPosition(loc, true)
             }
-            // User decided to cancel tracking
-            if(externalCameraTrackingCancelled) {
-                return@setOnTrackedPositionChangedListener
-            }
-
-            externalCameraTracking = true
-            oldCenterCamera = centerCamera
-
-            setCameraCentering(false)
-
-            val loc = Location("Custom")
-            loc.latitude = it.lat
-            loc.longitude = it.lon
-
-            updateCameraPosition(loc, true)
         }
+
         lifecycleScope.launch {
             MessageStorage.drawAll()
         }
@@ -289,18 +313,52 @@ class MapFragment : Fragment() {
      * Sets up the Mapbox mapView element
      */
     private fun initMap() {
-        mapView.getMapboxMap().loadStyleUri(Style.TRAFFIC_DAY)
+
+        val style = when(mapThemeIndex) {
+            0 -> Style.TRAFFIC_DAY
+            1 -> Style.TRAFFIC_NIGHT
+            else -> Style.TRAFFIC_DAY
+        }
+
+        mapView.getMapboxMap().loadStyleUri(style) {
+            if(displayBuildingExteriors)
+                setupBuildings(it)
+        }
         mapView.getMapboxMap().addOnMoveListener(onMoveListener)
+        mapView.getMapboxMap().addOnMapClickListener(onMapClickListener)
         mapView.logo.updateSettings { marginRight = 80.0f }
         mapView.scalebar.updateSettings { ratio = 0.25f }
         mapView.compass.updateSettings { marginTop = 100.0f }
     }
 
     /**
+     * Adds a 3D building layer to map
+     */
+    private fun setupBuildings(style: Style) {
+        val color = when(mapThemeIndex) {
+            0 -> R.color.map_building_extrusion_color_light
+            1 -> R.color.map_building_extrusion_color_dark
+            else -> R.color.map_building_extrusion_color_light
+        }
+
+        val fillExtrusionLayer = FillExtrusionLayer("3d-buildings", "composite")
+        fillExtrusionLayer.sourceLayer("building")
+        fillExtrusionLayer.filter(eq(get("extrude"), literal("true")))
+        fillExtrusionLayer.minZoom(15.0)
+        fillExtrusionLayer.fillExtrusionColor(Color.parseColor(getString(color)))
+        fillExtrusionLayer.fillExtrusionHeight(get("height"))
+        fillExtrusionLayer.fillExtrusionBase(get("min_height"))
+        fillExtrusionLayer.fillExtrusionOpacity(buildingExteriorOpacity.toDouble())
+        fillExtrusionLayer.fillExtrusionAmbientOcclusionIntensity(0.3)
+        fillExtrusionLayer.fillExtrusionAmbientOcclusionRadius(3.0)
+        fillExtrusionLayer.fillExtrusionVerticalGradient(true)
+        style.addLayer(fillExtrusionLayer)
+    }
+
+    /**
      * Sets up the location provider and location puck image
      */
     private fun initNavigation() {
-
         if (!MapboxNavigationApp.isSetup()) {
             MapboxNavigationApp.setup {
                 NavigationOptions.Builder(requireActivity().applicationContext)
@@ -338,7 +396,6 @@ class MapFragment : Fragment() {
                 .build()
 
         var xOffset = 0.0f
-        val yOffset = mapView.height * 0.5f
 
         if(VisualizerInstance.visualizer?.detailsCardOpened == true) {
             xOffset = mapView.width * 0.25f
@@ -349,7 +406,7 @@ class MapFragment : Fragment() {
                 CameraOptions.Builder()
                     .center(Point.fromLngLat(location.longitude, location.latitude))
                     .bearing(0.0)
-                    .zoom(18.0)
+                    .zoom(cameraDefaultZoom.toDouble())
                     .pitch(0.0)
                     .padding(EdgeInsets(0.0, xOffset.toDouble(), 0.0, 0.0))
                     .build(),
@@ -357,12 +414,16 @@ class MapFragment : Fragment() {
             )
         }
         else {
+            val bearing = if(cameraFaceNorth) 0.0 else location.bearing.toDouble()
+            val pitch = if(cameraFaceNorth) 0.0 else 45.0
+            val yOffset = if(cameraFaceNorth) 0.0f else mapView.height * 0.5f
+
             mapView.camera.easeTo(
                 CameraOptions.Builder()
                     .center(Point.fromLngLat(location.longitude, location.latitude))
-                    .bearing(location.bearing.toDouble())
-                    .zoom(18.0)
-                    .pitch(45.0)
+                    .bearing(bearing)
+                    .zoom(cameraDefaultZoom.toDouble())
+                    .pitch(pitch)
                     .padding(EdgeInsets(yOffset.toDouble(), xOffset.toDouble(), 0.0, 0.0))
                     .build(),
                 mapAnimationOptions
