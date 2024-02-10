@@ -79,7 +79,8 @@ class Mapem(
     val signalGroups: MutableList<SignalGroupCompact> = mutableListOf(),
     internal val currentIconIDs: MutableList<Long> = mutableListOf(),
     internal var visualizerSignalGroupID: Int? = null,
-    internal var visited: Boolean = false
+    internal var visited: Boolean = false,
+    internal var autoNotifyCanceled: Boolean = false
 
 ) : Message(
     messageID,

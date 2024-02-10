@@ -147,7 +147,7 @@ class MapFragment : Fragment() {
 
     private val onMapClickListener = OnMapClickListener {
         if(VisualizerInstance.visualizer?.detailsCardOpened == true) {
-            VisualizerInstance.visualizer?.removeCurrentFocused(true)
+            VisualizerInstance.visualizer?.removeCurrentFocused(closeDetailsTab = true, userCanceled = true)
             true
         } else false
     }

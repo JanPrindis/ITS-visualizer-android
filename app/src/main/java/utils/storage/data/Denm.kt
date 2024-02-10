@@ -18,6 +18,8 @@ class Denm(
     var subCauseCode: Int,
     private var pathHistory: MutableList<MutableList<Position>>,
 
+    // Visualization
+    internal var autoNotifyCanceled: Boolean = false,
     internal val calculatedPathHistory: MutableList<MutableList<Position>> = mutableListOf()
 
 ) : Message(
