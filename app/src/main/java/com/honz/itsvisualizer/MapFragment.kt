@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -63,13 +64,22 @@ object LatestGPSLocation {
 
 class MapFragment : Fragment() {
 
+    // Navigation lifecycle handler
     init {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onResume(owner: LifecycleOwner) {
+            override fun onCreate(owner: LifecycleOwner) {
                 MapboxNavigationApp.attach(owner)
             }
 
-            override fun onPause(owner: LifecycleOwner) {
+            override fun onStart(owner: LifecycleOwner) {
+                MapboxNavigationApp.attach(owner)
+            }
+
+            override fun onStop(owner: LifecycleOwner) {
+                MapboxNavigationApp.detach(owner)
+            }
+
+            override fun onDestroy(owner: LifecycleOwner) {
                 MapboxNavigationApp.detach(owner)
             }
         })
@@ -82,6 +92,7 @@ class MapFragment : Fragment() {
     private lateinit var detailsCard: MaterialCardView
 
     // Navigation
+    private lateinit var mapboxNavigation: MapboxNavigation
     private val navigationLocationProvider = NavigationLocationProvider()
     private var isTripSessionStarted = false
 
@@ -194,9 +205,6 @@ class MapFragment : Fragment() {
         mapView = view.findViewById(R.id.mapView)
         initMap()
 
-        // Location init
-        initNavigation()
-
         // Camera position update if available
         LatestGPSLocation.location?.let { updateCameraPosition(it) }
 
@@ -242,58 +250,91 @@ class MapFragment : Fragment() {
         return view
     }
 
-    /**
-     * Mapbox navigation element that matches current position to nearest road
-     */
-    private val mapboxNavigation by requireMapboxNavigation(
-        onResumedObserver = object : MapboxNavigationObserver {
-            override fun onAttached(mapboxNavigation: MapboxNavigation) {
-                mapboxNavigation.registerLocationObserver(locationObserver)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-                // Check if user granted location permissions
-                if (ActivityCompat.checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    // Permissions denied, show a message to the user
-                    AlertDialog.Builder(activity)
-                        .setTitle(R.string.perm_disabled_title)
-                        .setMessage(R.string.perm_disabled_text)
-                        .setNeutralButton(R.string.cancel) { dialog, _ ->
-                            dialog.dismiss()
-                        }
-                        .setCancelable(false)
-                        .show()
-
-                    setCameraCentering(false)
-                    cameraCenteringToggleFab.isEnabled = false
-                    return
-                }
-
-                if (!isTripSessionStarted) {
-                    mapboxNavigation.startTripSession()
-                    isTripSessionStarted = true
-                }
-                else {
-                    LatestGPSLocation.location?.let { updateCameraPosition(it) }
-                }
-
-            }
-
-            override fun onDetached(mapboxNavigation: MapboxNavigation) {
-                mapboxNavigation.unregisterLocationObserver(locationObserver)
-            }
-        },
-    )
-
-    override fun onStart() {
-        super.onStart()
+        // Navigation initialization can be only called, when the fragment is created and attached, so it can access Application context
         initNavigation()
+
+        requireMapboxNavigation(
+            onResumedObserver = object : MapboxNavigationObserver {
+                override fun onAttached(mapboxNavigation: MapboxNavigation) {
+                    this@MapFragment.mapboxNavigation = mapboxNavigation
+                    if(!userDeniedLocationPermission)
+                        handleLocationPermissions()
+                }
+
+                override fun onDetached(mapboxNavigation: MapboxNavigation) {
+                    mapboxNavigation.unregisterLocationObserver(locationObserver)
+                }
+            },
+        )
     }
+
+    /**
+     * Function checks if location permissions are granted, if they are, turn on trip session, if not, ask user
+     */
+    private fun handleLocationPermissions() {
+        if(userDeniedLocationPermission) return
+        mapboxNavigation.registerLocationObserver(locationObserver)
+
+        // Check if location permissions allowed
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Ask user for permission
+            requestLocationPermissions.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+
+        } else {
+            // Granted
+            if (!isTripSessionStarted) {
+                mapboxNavigation.startTripSession()
+                isTripSessionStarted = true
+            } else {
+                LatestGPSLocation.location?.let { updateCameraPosition(it) }
+            }
+        }
+    }
+
+    /**
+     * Permission result, if user denied, shows warning message box informing user, that location tracking will not be available,
+     * if they are granted, it re-runs handleLocationPermissions function, to turn on trip session
+     */
+    private val requestLocationPermissions =
+        this.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val allPermissionsGranted = permissions.all { it.value }
+
+            if (!allPermissionsGranted) {
+                userDeniedLocationPermission = true
+                // Permissions denied
+                AlertDialog.Builder(requireActivity())
+                    .setTitle(R.string.perm_disabled_title)
+                    .setMessage(R.string.perm_disabled_text)
+                    .setNeutralButton(R.string.cancel) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .setCancelable(false)
+                    .show()
+
+                setCameraCentering(false)
+                cameraCenteringToggleFab.isEnabled = false
+            }
+            else {
+                // Permissions granted
+                userDeniedLocationPermission = false
+                handleLocationPermissions()
+            }
+        }
 
     /**
      * Gets boolean representing current state of socket to update FAB image
@@ -360,11 +401,14 @@ class MapFragment : Fragment() {
      */
     private fun initNavigation() {
         if (!MapboxNavigationApp.isSetup()) {
+            if(!isAdded) return
+
+            val context = requireActivity().applicationContext
             MapboxNavigationApp.setup {
-                NavigationOptions.Builder(requireActivity().applicationContext)
+                NavigationOptions.Builder(context)
                     .accessToken(getString(R.string.mapbox_access_token))
                     .build()
-            }
+            }.attach(this@MapFragment)
         }
 
         mapView.location.apply {
@@ -457,11 +501,12 @@ class MapFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        mapboxNavigation.unregisterLocationObserver(locationObserver)
 
         VisualizerInstance.visualizer?.removeAllMarkers()
         VisualizerInstance.visualizer?.removeOnTrackedPositionChangedListener()
         VisualizerInstance.visualizer = null
-        MapboxNavigationApp.detach(this)
+        MapboxNavigationApp.detach(this) // Possible redundant
 
         externalCameraTracking = false
         externalCameraTrackingCancelled = false
@@ -470,6 +515,7 @@ class MapFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+
         LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(stateReceiver)
     }
 }
