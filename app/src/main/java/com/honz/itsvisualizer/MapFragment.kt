@@ -112,6 +112,8 @@ class MapFragment : Fragment() {
     private var cameraTrackUserSelected = true
     private var cameraDefaultZoom = 18.0f
 
+    private var userDeniedLocationPermission = false
+
     /**
      * locationObserver passes new location data to update camera position
      */
