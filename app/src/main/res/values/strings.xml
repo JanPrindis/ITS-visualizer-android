@@ -47,4 +47,13 @@
     <string name="priority">Priority</string>
     <string name="draw_intersection_geometry">Draw intersection geometry</string>
     <string name="make_camera_track_user_selected_stations">Make camera track user selected stations</string>
+    <string name="unknown_lane_type">Unknown lane type</string>
+    <string name="tracked_vehicle">Tracked Vehicle</string>
+    <string name="striping">Striping</string>
+    <string name="median">Median</string>
+    <string name="sidewalk">Sidewalk</string>
+    <string name="bike_lane">Bike lane</string>
+    <string name="crosswalk">Crosswalk</string>
+    <string name="vehicle_lane">Vehicle lane</string>
+    <string name="geometry_color_list">Geometry color list</string>
 </resources>

@@ -14,5 +14,15 @@
     <!-- Message line colors -->
     <color name="map_line_denm">#FFFF00</color>
     <color name="map_line_cam">#2196F3</color>
-    <color name="map_line_mapem">#000000</color>
+
+    <!-- MAPEM geometry colors-->
+    <color name="map_line_mapem_vehicle">#1F77B4</color>
+    <color name="map_line_mapem_crosswalk">#2CA02C</color>
+    <color name="map_line_mapem_bike_lane">#FF7F0E</color>
+    <color name="map_line_mapem_sidewalk">#FFBB78</color>
+    <color name="map_line_mapem_median">#9467BD</color>
+    <color name="map_line_mapem_striping">#8C564B</color>
+    <color name="map_line_mapem_tracked_vehicle">#1F77B4</color>
+    <color name="map_line_mapem_parking">#E91E63</color>
+    <color name="map_line_mapem_unknown">#000000</color>
 </resources>

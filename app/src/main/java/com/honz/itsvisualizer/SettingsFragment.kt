@@ -44,7 +44,7 @@ class SettingsFragment : Fragment() {
     private lateinit var showMapemToggle: MaterialSwitch
     private lateinit var priorityDropdown: AutoCompleteTextView
     private lateinit var mapemGeometryToggle: MaterialSwitch
-
+    private lateinit var colorsWrapper: LinearLayout
 
     private lateinit var saveButton: Button
     private lateinit var sharedPreferences: SharedPreferences
@@ -77,6 +77,7 @@ class SettingsFragment : Fragment() {
         showMapemToggle = view.findViewById(R.id.displayMapemToggle)
         priorityDropdown = view.findViewById(R.id.priorityDropdownText)
         mapemGeometryToggle = view.findViewById(R.id.displayMapemGeometryToggle)
+        colorsWrapper = view.findViewById(R.id.colorsWrapper)
 
         saveButton = view.findViewById(R.id.saveButton)
 
@@ -253,6 +254,23 @@ class SettingsFragment : Fragment() {
         // Mapem geometry
         val mapemGeometry = sharedPreferences.getBoolean("showMapemGeometry", false)
         mapemGeometryToggle.isChecked = mapemGeometry
+
+        // Expand or hide color list
+        colorsWrapper.visibility = if(mapemGeometry) {
+             View.VISIBLE
+        }
+        else {
+            View.GONE
+        }
+
+        mapemGeometryToggle.setOnCheckedChangeListener { _, isChecked ->
+            colorsWrapper.visibility = if(isChecked) {
+                View.VISIBLE
+            }
+            else {
+                View.GONE
+            }
+        }
 
         // Save button
         saveButton.setOnClickListener { 

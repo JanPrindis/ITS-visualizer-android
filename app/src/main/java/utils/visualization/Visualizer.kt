@@ -150,7 +150,7 @@ class Visualizer(
             val currentFocused = focused
             if (existingPoint != null) {
                 if(currentFocused is Cam && currentFocused.stationID == cam.stationID) {
-                    setFocused(cam)
+                    setFocused(cam, true)
                 }
 
                 // Update existing point
@@ -240,7 +240,7 @@ class Visualizer(
                 if( currentFocused is Denm &&
                     currentFocused.stationID == denm.stationID &&
                     currentFocused.sequenceNumber == denm.sequenceNumber) {
-                    setFocused(denm)
+                    setFocused(denm, true)
                 }
 
                 // Update existing point
@@ -360,7 +360,7 @@ class Visualizer(
                 val currentFocused = focused
                 if (existingPoint != null) {
                     if(currentFocused is Mapem && currentFocused.intersectionID == mapem.intersectionID) {
-                        setFocused(mapem)
+                        setFocused(mapem, true)
                     }
 
                     // Update existing point
@@ -401,7 +401,7 @@ class Visualizer(
      */
     fun removeMapem(mapem: Mapem) {
         if(focused == mapem)
-            removeFocused(true)
+            removeFocused(mapem, true)
 
         for (id in mapem.currentIconIDs) {
             val point = pointList[id] ?: return
@@ -435,9 +435,8 @@ class Visualizer(
     /**
      * Draws CAM path history and displays details card
      */
-    private fun setFocused(cam: Cam) {
-        removeCurrentFocused(false)
-
+    private fun setFocused(cam: Cam, isSame: Boolean = false) {
+        if(!isSame) removeCurrentFocused(false)
         synchronized(fragmentLock) {
             focused = cam
 
@@ -503,8 +502,8 @@ class Visualizer(
     /**
      * Highlights affected path by DENM and displays details card
      */
-    private fun setFocused(denm: Denm) {
-        removeCurrentFocused(false)
+    private fun setFocused(denm: Denm, isSame: Boolean = false) {
+        if(!isSame) removeCurrentFocused(false)
         synchronized(fragmentLock) {
             focused = denm
 
@@ -578,13 +577,47 @@ class Visualizer(
     /**
      * Displays detail card containing either user selected signal group, or signal group closest to current GPS heading
      */
-    private fun setFocused(mapem: Mapem) {
+    private fun setFocused(mapem: Mapem, isSame: Boolean = false) {
         val selected = lastSelectedSignalGroup
-
-        removeCurrentFocused(false)
+        if(!isSame) removeCurrentFocused(false)
 
         synchronized(fragmentLock) {
             focused = mapem
+
+            // Draw intersection geometry
+            if(drawMapemGeometry && !isSame) {
+                for (lane in mapem.lanes) {
+                    val id = "${mapem.intersectionID}${lane.laneID}".toLong()
+                    val existingLine = lineList[id]
+
+                    // Draw only if new, don't redraw every time
+                    if(existingLine == null) {
+                        val c = context ?: return
+                        val colorInt = when(lane.type) {
+                            0 -> ContextCompat.getColor(c, R.color.map_line_mapem_vehicle)
+                            1 -> ContextCompat.getColor(c, R.color.map_line_mapem_crosswalk)
+                            2 -> ContextCompat.getColor(c, R.color.map_line_mapem_bike_lane)
+                            3 -> ContextCompat.getColor(c, R.color.map_line_mapem_sidewalk)
+                            4 -> ContextCompat.getColor(c, R.color.map_line_mapem_median)
+                            5 -> ContextCompat.getColor(c, R.color.map_line_mapem_striping)
+                            6 -> ContextCompat.getColor(c, R.color.map_line_mapem_tracked_vehicle)
+                            7 -> ContextCompat.getColor(c, R.color.map_line_mapem_parking)
+                            else -> ContextCompat.getColor(c, R.color.map_line_mapem_unknown)
+                        }
+                        val colorHexString = String.format("#%06X", 0xFFFFFF and colorInt)
+
+                        // Create new line
+                        val newPolyLineAnnotationOptions = PolylineAnnotationOptions()
+                            .withPoints(positionListToPointList(lane.calculatedLaneOffset))
+                            .withLineColor(colorHexString)
+                            .withLineOpacity(0.5)
+                            .withLineWidth(10.0)
+
+                        val newLine = mapemLineAnnotationManager.create(newPolyLineAnnotationOptions)
+                        lineList[id] = newLine
+                    }
+                }
+            }
 
             // Show fragment
             val displayedCard = displayedDetailsCard
@@ -614,12 +647,20 @@ class Visualizer(
     /**
      * Removes MAPEM card, optionally closes the details card
      */
-    private fun removeFocused(closeDetailsTab: Boolean) {
+    private fun removeFocused(mapem: Mapem, closeDetailsTab: Boolean) {
         synchronized(fragmentLock) {
             focused = null
             if (closeDetailsTab) {
                 lastSelectedSignalGroup = null
                 handler.post { setDetailsCardState(DetailsCardState.CLOSE) }
+            }
+
+            for(lane in mapem.lanes) {
+                val id = "${mapem.intersectionID}${lane.laneID}".toLong()
+                val existingLine = lineList[id] ?: continue
+
+                mapemLineAnnotationManager.delete(existingLine)
+                lineList.remove(id)
             }
         }
     }
@@ -628,11 +669,19 @@ class Visualizer(
     /**
      * Removes current focused card, optionally closes the details card
      */
-    fun removeCurrentFocused(closeDetailsTab: Boolean) {
+    fun removeCurrentFocused(closeDetailsTab: Boolean, userCanceled: Boolean = false) {
         when(val message = focused) {
             is Cam -> removeFocused(message, closeDetailsTab)
-            is Denm -> removeFocused(message, closeDetailsTab)
-            is Mapem -> removeFocused(closeDetailsTab)
+            is Denm -> {
+                if(userCanceled)
+                    message.autoNotifyCanceled = true
+                removeFocused(message, closeDetailsTab)
+            }
+            is Mapem -> {
+                if(userCanceled)
+                    message.autoNotifyCanceled = true
+                removeFocused(message, closeDetailsTab)
+            }
             null -> return
             else -> {
                 synchronized(fragmentLock) {
@@ -818,7 +867,7 @@ class Visualizer(
             // If DENM too far, remove
             if(newDistance > AUTO_NOTIFICATION_MAX_DIST) {
                 focusedDistance = null
-                removeFocused(true)
+                removeFocused(message, true)
             }
             else {
                 focusedDistance = newDistance
@@ -836,7 +885,7 @@ class Visualizer(
             if (newDistance > AUTO_NOTIFICATION_MAX_DIST ||
                 (message.visited && newDistance >= AUTO_NOTIFICATION_INTERSECTION_REMOVE_VISITED_DIST)) {
                 focusedDistance = null
-                removeFocused(true)
+                removeFocused(message, true)
             }
             else {
                 // If close to intersection, set intersection as visited
@@ -852,6 +901,10 @@ class Visualizer(
 
         // Decide if message should be focused
         if(message is Denm) {
+
+            //Message previously cancelled by user
+            if(message.autoNotifyCanceled) return
+
             // Nothing is currently displayed
             if (oldDistance == null) {
                 focusedDistance = newDistance
@@ -871,6 +924,9 @@ class Visualizer(
             }
         }
         else if (message is Mapem) {
+            //Message previously cancelled by user
+            if(message.autoNotifyCanceled) return
+
             // MAPEM already visited
             if(message.visited && newDistance > AUTO_NOTIFICATION_INTERSECTION_REMOVE_VISITED_DIST) return
 

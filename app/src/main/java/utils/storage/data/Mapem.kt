@@ -59,6 +59,9 @@ data class Lane(
 
     val nodes: MutableList<Node>,
     val connectingLanes: MutableList<ConnectingLane>,
+
+    // Visualization
+    internal var calculatedLaneOffset: List<Position> = mutableListOf()
 )
 
 class Mapem(
@@ -192,6 +195,25 @@ class Mapem(
                     else Maneuver.UNKNOWN
             ))
         }
+
+        calculateLaneOffsets()
+    }
+
+    private fun calculateLaneOffsets() {
+        val refPos = originPosition ?: return
+
+        for(lane in lanes) {
+            lane.calculatedLaneOffset = calculatePathHistory(refPos, nodesToPositions(lane.nodes))
+        }
+    }
+
+    private fun nodesToPositions(nodes: List<Node>) : List<Position> {
+        val positions = mutableListOf<Position>()
+        for(node in nodes) {
+            positions.add(Position(node.y.toDouble(), node.x.toDouble(), 0.0))
+        }
+
+        return positions
     }
 
     companion object LaneTypes{
@@ -199,9 +221,9 @@ class Mapem(
             "Vehicle",
             "CrossWalk",
             "BikeLane",
-            "Unknown",
-            "Unknown",
-            "Unknown",
+            "Sidewalk",
+            "Median",
+            "Striping",
             "TrackedVehicle",
             "Parking")
     }
