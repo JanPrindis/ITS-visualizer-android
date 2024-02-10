@@ -119,9 +119,12 @@ class SocketService : Service() {
      */
     private suspend fun connectToSocket() {
         while(!loopStop) {
-            if (!attemptConnection) continue
+            if (!attemptConnection) {
+                delay(1000)
+                continue
+            }
             if (ipAddress.isNullOrEmpty() || port == -1) {
-                // IP or Port is not set
+                stopConnection(noIpWarning = true)
                 continue
             }
 
@@ -170,12 +173,7 @@ class SocketService : Service() {
                                 }
 
                                 buffer.deleteCharAt(buffer.lastIndex)
-
-                                try {
-                                    processData(buffer.toString())
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
+                                processData(buffer.toString())
 
                                 buffer.clear()
                             }
@@ -217,12 +215,15 @@ class SocketService : Service() {
         LocalBroadcastManager.getInstance(this@SocketService).sendBroadcast(statusIntent)
     }
 
-    private fun stopConnection() {
+    private fun stopConnection(noIpWarning: Boolean = false) {
         attemptConnection = false
         attemptCount = 0
 
         socket?.close()
-        sendNotification(StatusColor.RED, "Disconnected")
+        if(!noIpWarning)
+            sendNotification(StatusColor.RED, "Disconnected")
+        else
+            sendNotification(StatusColor.RED, "Server address, or port not set!")
     }
 
     private fun startConnection() {
