@@ -46,6 +46,9 @@ class SettingsFragment : Fragment() {
     private lateinit var mapemGeometryToggle: MaterialSwitch
     private lateinit var colorsWrapper: LinearLayout
 
+    // UI test
+    private lateinit var uiTestToggle: MaterialSwitch
+
     private lateinit var saveButton: Button
     private lateinit var sharedPreferences: SharedPreferences
 
@@ -78,6 +81,9 @@ class SettingsFragment : Fragment() {
         priorityDropdown = view.findViewById(R.id.priorityDropdownText)
         mapemGeometryToggle = view.findViewById(R.id.displayMapemGeometryToggle)
         colorsWrapper = view.findViewById(R.id.colorsWrapper)
+
+        // UI test
+        uiTestToggle = view.findViewById(R.id.UiTestModeToggle)
 
         saveButton = view.findViewById(R.id.saveButton)
 
@@ -272,6 +278,10 @@ class SettingsFragment : Fragment() {
             }
         }
 
+        // UI test toggle
+        val uiTestMode = sharedPreferences.getBoolean("uiTestEnabled", false)
+        uiTestToggle.isChecked = uiTestMode
+
         // Save button
         saveButton.setOnClickListener { 
             saveSettings()
@@ -337,6 +347,9 @@ class SettingsFragment : Fragment() {
 
         // Mapem geometry
         editor.putBoolean("showMapemGeometry", mapemGeometryToggle.isChecked)
+
+        // UI test
+        editor.putBoolean("uiTestEnabled", uiTestToggle.isChecked)
 
         // Apply changes and notify services
         editor.apply()

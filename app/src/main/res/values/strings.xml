@@ -56,4 +56,5 @@
     <string name="crosswalk">Crosswalk</string>
     <string name="vehicle_lane">Vehicle lane</string>
     <string name="geometry_color_list">Geometry color list</string>
+    <string name="enable_ui_testing_mode">Enable UI testing mode</string>
 </resources>

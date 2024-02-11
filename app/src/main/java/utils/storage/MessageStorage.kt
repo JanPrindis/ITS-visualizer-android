@@ -3,12 +3,168 @@ package utils.storage
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import utils.storage.data.Cam
+import utils.storage.data.ConnectingLane
 import utils.storage.data.Denm
+import utils.storage.data.Lane
 import utils.storage.data.Mapem
+import utils.storage.data.MovementEvent
+import utils.storage.data.MovementState
+import utils.storage.data.Node
+import utils.storage.data.Position
+import utils.storage.data.Request
+import utils.storage.data.Response
+import utils.storage.data.SPATEMIntersection
 import utils.storage.data.Spatem
 import utils.storage.data.Srem
 import utils.storage.data.Ssem
+import utils.storage.data.VehicleLights
 import utils.visualization.VisualizerInstance
+
+/**
+ * This data here is just for UI testing, it is not real data and does not make sense in the real world
+ * It is added to storage and displayed after pressing the "testFab" on MapFragment
+ */
+object TestingData {
+    val testCam = Cam(
+        0,
+        0,
+        7,
+        Position(49.8359823761241, 18.158047008184024, 0.0),
+        22.1f,
+        313.0f,
+        mutableListOf(
+            Position(-834.960539393137, 1335.4244686780703, 0.0),
+            Position(-2525.7605471296074, -214.57672119140625, 0.0),
+            Position(-1055.2874236680054, 2843.14155582166, 0.0),
+            Position(311.39652833189757, 1046.0615157725783, 0.0),
+            Position(6694.976860970314, 15985.965728617657, 0.0)),
+        3.1f,
+        1.8f,
+        9,
+        VehicleLights(
+            lowBeamHeadLightsOn = true,
+            highBeamHeadLightsOn = true,
+            leftTurnSignalOn = true,
+            rightTurnSignalOn = true,
+            daytimeRunningLightsOn = false,
+            reverseLightsOn = false,
+            fogLightsOn = false,
+            parkingLightsOn = false
+        ),
+        0.0
+        )
+
+    val testDenm = Denm(
+        1,
+        11,
+        7,
+        Position(49.83548541583945, 18.158451453741396, 0.0),
+        0, 0, 0, 0,
+        false,
+        94, 1,
+        mutableListOf(
+            mutableListOf(
+                Position(2387.385274147391, -1823.9021301269531, 0.0),
+                Position(3131.2627951507466, -3433.227539026973, 0.0)
+            )
+        )
+    )
+
+    val testSrem = Srem(
+        2,
+        0,
+        0f,
+        0,
+        mutableListOf(Request(0, 0, 0, 2, 0, 0, 0)),
+        0,
+        9, 0,
+        "Test",
+        "Test route"
+    )
+
+    val testSsem = Ssem(
+        3,
+        2,
+        0,
+        1,
+        0,
+        mutableListOf(Response(0, 0, 0, 0, 9, 0,0, 0,0, 0, 4, "Granted"))
+    )
+
+    val testMapem = Mapem(
+        4, 3,
+        Position(49.83560478453323, 18.158636526163423, 0.0),
+        1, "Test Intersection",
+        0f,
+        mutableListOf(
+            Lane(
+                0, "Vehicle",
+                0, null, null, directionIngressPath = true, directionEgressPath = false,
+                nodes = mutableListOf(
+                    Node(2601, 1678, 0),
+                    Node(3889, 1591, 0)
+                ),
+                connectingLanes = mutableListOf(
+                    ConnectingLane(0, 1, 0,
+                        maneuverStraightAllowed = false,
+                        maneuverLeftAllowed = true,
+                        maneuverRightAllowed = false
+                    )
+                )
+            ),
+            Lane(
+                0, "Vehicle",
+                1, null, null, directionIngressPath = true, directionEgressPath = false,
+                nodes = mutableListOf(
+                    Node(2611, 1678, 0),
+                    Node(3895, 1591, 0)
+                ),
+                connectingLanes = mutableListOf(
+                    ConnectingLane(1, 2, 1,
+                        maneuverStraightAllowed = true,
+                        maneuverLeftAllowed = false,
+                        maneuverRightAllowed = false
+                    )
+                )
+            ),
+            Lane(
+                0, "Vehicle",
+                2, null, null, directionIngressPath = true, directionEgressPath = false,
+                nodes = mutableListOf(
+                    Node(2621, 1678, 0),
+                    Node(3899, 1591, 0)
+                ),
+                connectingLanes = mutableListOf(
+                    ConnectingLane(2, 3, 2,
+                        maneuverStraightAllowed = false,
+                        maneuverLeftAllowed = false,
+                        maneuverRightAllowed = true
+                    )
+                )
+            )
+        )
+    )
+
+    val testSpatem = Spatem(
+        5, 3,
+        mutableListOf(
+            SPATEMIntersection(
+                1, 0, 0, "Test Intersection",
+                mutableListOf(
+                    MovementState(0, "",
+                        mutableListOf(MovementEvent(3, 0, 0, 300, 600, null))
+                    ),
+                    MovementState(1, "",
+                        mutableListOf(MovementEvent(4, 0, 0, 300, 600, null))
+                    ),
+                    MovementState(2, "",
+                        mutableListOf(MovementEvent(5, 0, 0, 300, 600, null))
+                    )
+                )
+            )
+        )
+    )
+}
 
 object MessageStorage {
     private val mutex = Mutex()

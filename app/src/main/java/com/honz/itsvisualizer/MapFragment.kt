@@ -54,7 +54,9 @@ import com.mapbox.navigation.core.trip.session.LocationMatcherResult
 import com.mapbox.navigation.core.trip.session.LocationObserver
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import utils.storage.MessageStorage
+import utils.storage.TestingData
 import utils.visualization.Visualizer
 import utils.visualization.VisualizerInstance
 
@@ -90,6 +92,8 @@ class MapFragment : Fragment() {
     private lateinit var connectionToggleFab: FloatingActionButton
     private lateinit var cameraCenteringToggleFab: FloatingActionButton
     private lateinit var detailsCard: MaterialCardView
+    // For UI tests
+    private lateinit var testingFab: FloatingActionButton
 
     // Navigation
     private lateinit var mapboxNavigation: MapboxNavigation
@@ -111,6 +115,8 @@ class MapFragment : Fragment() {
     private var cameraFaceNorth = false
     private var cameraTrackUserSelected = true
     private var cameraDefaultZoom = 18.0f
+
+    private var uiTestingEnabled = false
 
     private var userDeniedLocationPermission = false
 
@@ -187,9 +193,16 @@ class MapFragment : Fragment() {
         cameraTrackUserSelected = sharedPreferences.getBoolean("cameraTrackUserSelected", true)
         cameraDefaultZoom = sharedPreferences.getFloat("cameraDefaultZoom", 18.0f)
 
+        uiTestingEnabled = sharedPreferences.getBoolean("uiTestEnabled", false)
+
         // Connection toggle FAB
         connectionToggleFab = view.findViewById(R.id.connectionToggleFab)
         connectionToggleFab.setOnClickListener { toggleConnection() }
+
+        // Testing FAB
+        testingFab = view.findViewById(R.id.testFab)
+        testingFab.setOnClickListener{ addTestingData() }
+        testingFab.visibility = if(uiTestingEnabled) View.VISIBLE else View.GONE
 
         // Update icon based on current state
         val intent = Intent("itsVisualizer.SOCKET_SERVICE_STATE_REQUEST")
@@ -499,6 +512,32 @@ class MapFragment : Fragment() {
     private fun toggleConnection() {
         val intent = Intent("itsVisualizer.TOGGLE_SOCKET_SERVICE")
         LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
+    }
+
+    /**
+     * Adds testing data on map and moves camera near it.
+     * This function is used only for UI testing and might be removed later.
+     */
+    private fun addTestingData() {
+        setCameraCentering(false)
+
+        val l = Location("Custom")
+        l.latitude = 49.83548118939259
+        l.longitude = 18.15842231267649
+        l.altitude = 0.0
+        updateCameraPosition(l, true)
+
+        runBlocking {
+            MessageStorage.add(TestingData.testCam)
+            MessageStorage.add(TestingData.testDenm)
+            MessageStorage.add(TestingData.testSrem)
+            MessageStorage.add(TestingData.testSsem)
+            MessageStorage.add(TestingData.testMapem)
+            MessageStorage.add(TestingData.testSpatem)
+
+            // Its here twice, so it updates the annotation
+            MessageStorage.add(TestingData.testCam)
+        }
     }
 
     override fun onDestroyView() {

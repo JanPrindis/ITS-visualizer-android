@@ -563,13 +563,22 @@
                         android:text="@string/unknown_lane_type"
                         android:textSize="16sp" />
                 </LinearLayout>
-
             </LinearLayout>
 
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp" />
+
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/UiTestModeToggle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:text="@string/enable_ui_testing_mode"
+                android:textSize="16sp" />
         </LinearLayout>
     </ScrollView>
 
