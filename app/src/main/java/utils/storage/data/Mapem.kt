@@ -193,6 +193,8 @@ class Mapem(
                     else if(signal.value.left && signal.value.straight) Maneuver.LEFT_STRAIGHT
                     else if(signal.value.right && signal.value.straight) Maneuver.RIGHT_STRAIGHT
                     else if(signal.value.straight) Maneuver.STRAIGHT
+                    else if(signal.value.right) Maneuver.RIGHT
+                    else if(signal.value.left) Maneuver.LEFT
                     else Maneuver.UNKNOWN
             ))
         }
