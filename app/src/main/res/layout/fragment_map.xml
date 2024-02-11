@@ -34,6 +34,7 @@
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/cameraCenteringToggleFab"
         app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintHeight_max="400dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/mapView">
 
