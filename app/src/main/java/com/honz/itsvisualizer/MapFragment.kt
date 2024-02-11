@@ -544,9 +544,9 @@ class MapFragment : Fragment() {
         super.onDestroyView()
         mapboxNavigation.unregisterLocationObserver(locationObserver)
 
-        VisualizerInstance.visualizer?.removeAllMarkers()
-        VisualizerInstance.visualizer?.removeOnTrackedPositionChangedListener()
+        VisualizerInstance.visualizer?.destroy()
         VisualizerInstance.visualizer = null
+
         MapboxNavigationApp.detach(this) // Possible redundant
 
         externalCameraTracking = false
@@ -556,7 +556,7 @@ class MapFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-
+        MapboxNavigationApp.disable()
         LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(stateReceiver)
     }
 }

@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
+import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -51,7 +52,7 @@ class Visualizer(
     private val detailsCard: MaterialCardView,
     private val fragmentManager: FragmentManager
 ) {
-
+    private var isBeingDestroyed = false
     private val fragmentContextRef: WeakReference<Context> = WeakReference(fragmentContext)
     private val context: Context?
         get() = fragmentContextRef.get()
@@ -88,6 +89,7 @@ class Visualizer(
     private val displayDenmNotifications = sharedPreferences?.getBoolean("autoShowDenm", true) ?: true
     private val displayMapemNotifications = sharedPreferences?.getBoolean("autoShowMapem", true) ?: true
     private val drawMapemGeometry = sharedPreferences?.getBoolean("showMapemGeometry", false) ?: false
+    private val autoNotificationsAudioEnabled = sharedPreferences?.getBoolean("autoAudioEnabled", false) ?: false
 
     private var lastSelectedSignalGroup: Int? = null
 
@@ -907,6 +909,14 @@ class Visualizer(
 
             // Nothing is currently displayed
             if (oldDistance == null) {
+                // Play audio
+                if(autoNotificationsAudioEnabled) {
+                    if (context != null && mediaPlayer == null)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.notification_audio)
+
+                    handler.post { mediaPlayer?.start() }
+                }
+
                 focusedDistance = newDistance
                 setFocused(message)
             }
@@ -919,6 +929,14 @@ class Visualizer(
 
             // Display
             else {
+                // Play audio
+                if(autoNotificationsAudioEnabled) {
+                    if (context != null && mediaPlayer == null)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.notification_audio)
+
+                    handler.post { mediaPlayer?.start() }
+                }
+
                 focusedDistance = newDistance
                 setFocused(message)
             }
@@ -932,6 +950,14 @@ class Visualizer(
 
             // Nothing is currently displayed
             if(oldDistance == null) {
+                // Play audio
+                if(autoNotificationsAudioEnabled) {
+                    if (context != null && mediaPlayer == null)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.notification_audio)
+
+                    handler.post { mediaPlayer?.start() }
+                }
+
                 focusedDistance = newDistance
                 setFocused(message)
             }
@@ -944,6 +970,14 @@ class Visualizer(
 
             // Display
             else {
+                // Play audio
+                if(autoNotificationsAudioEnabled) {
+                    if (context != null && mediaPlayer == null)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.notification_audio)
+
+                    handler.post { mediaPlayer?.start() }
+                }
+
                 focusedDistance = newDistance
                 setFocused(message)
             }
