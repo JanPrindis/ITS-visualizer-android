@@ -237,7 +237,6 @@ class SocketService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-
         loopStop = true
 
         socket?.close()
