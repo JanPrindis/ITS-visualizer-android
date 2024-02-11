@@ -293,6 +293,15 @@
                 android:textSize="20sp" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/notificationAudioToggle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:text="@string/play_sound_effect_when_auto_notification_expands"
+                android:textSize="16sp" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/displayDenmToggle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -569,7 +578,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp" />
-
 
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/UiTestModeToggle"

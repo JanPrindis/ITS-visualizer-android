@@ -40,6 +40,7 @@ class SettingsFragment : Fragment() {
     private lateinit var defaultZoom: TextInputEditText
 
     // Visualization settings
+    private lateinit var audioToggle: MaterialSwitch
     private lateinit var showDenmToggle: MaterialSwitch
     private lateinit var showMapemToggle: MaterialSwitch
     private lateinit var priorityDropdown: AutoCompleteTextView
@@ -76,6 +77,7 @@ class SettingsFragment : Fragment() {
         defaultZoom = view.findViewById(R.id.cameraZoom)
 
         // Visualization
+        audioToggle = view.findViewById(R.id.notificationAudioToggle)
         showDenmToggle = view.findViewById(R.id.displayDenmToggle)
         showMapemToggle = view.findViewById(R.id.displayMapemToggle)
         priorityDropdown = view.findViewById(R.id.priorityDropdownText)
@@ -238,6 +240,10 @@ class SettingsFragment : Fragment() {
         }
         defaultZoom.filters = arrayOf(zoomInputFilter)
 
+        // Audio toggle
+        val audioEnabled = sharedPreferences.getBoolean("autoAudioEnabled", false)
+        audioToggle.isChecked = audioEnabled
+
         // Denm toggle
         val autoDenm = sharedPreferences.getBoolean("autoShowDenm", true)
         showDenmToggle.isChecked = autoDenm
@@ -332,6 +338,9 @@ class SettingsFragment : Fragment() {
 
         // Camera default zoom
         editor.putFloat("cameraDefaultZoom", defaultZoom.text.toString().toFloat())
+
+        // Audio toggle
+        editor.putBoolean("autoAudioEnabled", audioToggle.isChecked)
 
         // Denm toggle
         editor.putBoolean("autoShowDenm", showDenmToggle.isChecked)

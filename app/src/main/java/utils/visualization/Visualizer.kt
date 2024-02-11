@@ -83,6 +83,8 @@ class Visualizer(
     private var focusedDistance: Double? = null
     private var isFocusedByUser = false
 
+    private var mediaPlayer: MediaPlayer? = null
+
     // Settings
     private val sharedPreferences = context?.getSharedPreferences("Settings", Context.MODE_PRIVATE)
     private val mapemPriority = sharedPreferences?.getInt("autoPriorityIndex", 0) == 0
@@ -128,6 +130,7 @@ class Visualizer(
      * Adds a CAM annotation to map
      */
     fun drawCam(cam: Cam) {
+        if(isBeingDestroyed) return
         val position = cam.originPosition ?: return
         val icon = when(cam.stationType) {
             1 -> R.drawable.pedestrian_icon
@@ -187,6 +190,7 @@ class Visualizer(
      * Removes CAM annotation
      */
     fun removeCam(cam: Cam) {
+        if(isBeingDestroyed) return
         val currentFocused = focused
         if(currentFocused is Cam && currentFocused.stationID == cam.stationID)
             removeFocused(cam, true)
@@ -200,6 +204,7 @@ class Visualizer(
      * Adds a DENM annotation to map
      */
     fun drawDenm(denm: Denm) {
+        if(isBeingDestroyed) return
         val position = denm.originPosition ?: return
 
         val icon = when(denm.causeCode) {
@@ -280,6 +285,7 @@ class Visualizer(
      * Removes DENM annotation
      */
     fun removeDenm(denm: Denm) {
+        if(isBeingDestroyed) return
         val currentFocused = focused
         if( currentFocused is Denm &&
             currentFocused.stationID == denm.stationID &&
@@ -296,6 +302,7 @@ class Visualizer(
      * Adds a MAPEM annotation to map
      */
     fun drawMapem(mapem: Mapem) {
+        if(isBeingDestroyed) return
         for (signal in mapem.signalGroups) {
             val spatem = mapem.latestSpatem?.movementStates?.find { it.signalGroup == signal.signalGroup }
 
@@ -402,6 +409,7 @@ class Visualizer(
      * Removes MAPEM annotation
      */
     fun removeMapem(mapem: Mapem) {
+        if(isBeingDestroyed) return
         if(focused == mapem)
             removeFocused(mapem, true)
 
@@ -438,6 +446,7 @@ class Visualizer(
      * Draws CAM path history and displays details card
      */
     private fun setFocused(cam: Cam, isSame: Boolean = false) {
+        if(isBeingDestroyed) return
         if(!isSame) removeCurrentFocused(false)
         synchronized(fragmentLock) {
             focused = cam
@@ -488,6 +497,7 @@ class Visualizer(
      * Removes CAM path history from map and optionally closes the details card
      */
     private fun removeFocused(cam: Cam, closeDetailsTab: Boolean) {
+        if(isBeingDestroyed) return
         val line = lineList["${cam.stationID}"] ?: return
 
         synchronized(fragmentLock) {
@@ -505,6 +515,7 @@ class Visualizer(
      * Highlights affected path by DENM and displays details card
      */
     private fun setFocused(denm: Denm, isSame: Boolean = false) {
+        if(isBeingDestroyed) return
         if(!isSame) removeCurrentFocused(false)
         synchronized(fragmentLock) {
             focused = denm
@@ -561,6 +572,7 @@ class Visualizer(
      * Removes affected path from map and optionally closes the details card
      */
     private fun removeFocused(denm: Denm, closeDetailsTab: Boolean) {
+        if(isBeingDestroyed) return
         synchronized(fragmentLock) {
             for (i in denm.calculatedPathHistory.indices) {
                 val id = "${denm.stationID}${denm.sequenceNumber}${i}"
@@ -580,6 +592,7 @@ class Visualizer(
      * Displays detail card containing either user selected signal group, or signal group closest to current GPS heading
      */
     private fun setFocused(mapem: Mapem, isSame: Boolean = false) {
+        if(isBeingDestroyed) return
         val selected = lastSelectedSignalGroup
         if(!isSame) removeCurrentFocused(false)
 
@@ -650,6 +663,7 @@ class Visualizer(
      * Removes MAPEM card, optionally closes the details card
      */
     private fun removeFocused(mapem: Mapem, closeDetailsTab: Boolean) {
+        if(isBeingDestroyed) return
         synchronized(fragmentLock) {
             focused = null
             if (closeDetailsTab) {
@@ -672,6 +686,7 @@ class Visualizer(
      * Removes current focused card, optionally closes the details card
      */
     fun removeCurrentFocused(closeDetailsTab: Boolean, userCanceled: Boolean = false) {
+        if(isBeingDestroyed) return
         when(val message = focused) {
             is Cam -> removeFocused(message, closeDetailsTab)
             is Denm -> {
@@ -701,6 +716,7 @@ class Visualizer(
      * Changes the currently displayed card for fragment passed as parameter
      */
     private fun updateFragment(fragment: Fragment) {
+        if(isBeingDestroyed) return
         if (!fragmentManager.isStateSaved) {
             val transaction = fragmentManager.beginTransaction()
             transaction.replace(R.id.detailsContainer, fragment)
@@ -722,7 +738,7 @@ class Visualizer(
      * Sets the details card state and animates opening/closing
      */
     private fun setDetailsCardState(set: DetailsCardState) {
-
+        if(isBeingDestroyed) return
         detailsCardOpened = when (set) {
             DetailsCardState.OPEN -> {
                 if(detailsCardOpened) return
@@ -848,6 +864,8 @@ class Visualizer(
      * Handles automatic displaying of notifications (details card) on screen
      */
     private fun displayPriorityNotification(message: Message) {
+        if(isBeingDestroyed) return
+
         // Focused messages by user have priority over auto
         if (isFocusedByUser) return
 
@@ -982,5 +1000,17 @@ class Visualizer(
                 setFocused(message)
             }
         }
+    }
+
+    private fun releaseMediaPlayer() {
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
+    fun destroy() {
+        isBeingDestroyed = true
+        releaseMediaPlayer()
+        removeOnTrackedPositionChangedListener()
+        removeAllMarkers()
     }
 }
