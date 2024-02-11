@@ -67,8 +67,8 @@ class Visualizer(
     private val mapemPointAnnotationManager = annotationApi.createPointAnnotationManager()
     private val denmPointAnnotationManager = annotationApi.createPointAnnotationManager()
 
-    private val pointList: MutableMap<Long, PointAnnotation> = mutableMapOf()
-    private val lineList: MutableMap<Long, PolylineAnnotation> = mutableMapOf()
+    private val pointList: MutableMap<String, PointAnnotation> = mutableMapOf()
+    private val lineList: MutableMap<String, PolylineAnnotation> = mutableMapOf()
 
     private val gson = Gson()
 
@@ -145,7 +145,7 @@ class Visualizer(
         val json = gson.toJsonTree(cam)
 
         bitmapFromDrawableRes(icon)?.let { bitmap ->
-            val existingPoint = pointList[cam.stationID]
+            val existingPoint = pointList["${cam.stationID}"]
 
             val currentFocused = focused
             if (existingPoint != null) {
@@ -166,7 +166,7 @@ class Visualizer(
                     .withData(json)
 
                 val newPoint = camPointAnnotationManager.create(newPointAnnotationOptions)
-                pointList[cam.stationID] = newPoint
+                pointList["${cam.stationID}"] = newPoint
 
                 camPointAnnotationManager.iconPadding = 10.0
                 camPointAnnotationManager.addClickListener(OnPointAnnotationClickListener {
@@ -189,9 +189,9 @@ class Visualizer(
         if(currentFocused is Cam && currentFocused.stationID == cam.stationID)
             removeFocused(cam, true)
 
-        val point = pointList[cam.stationID] ?: return
+        val point = pointList["${cam.stationID}"] ?: return
         camPointAnnotationManager.delete(point)
-        pointList.remove(cam.stationID)
+        pointList.remove("${cam.stationID}")
     }
 
     /**
@@ -230,7 +230,7 @@ class Visualizer(
 
         val json = gson.toJsonTree(denm)
 
-        val id = "${denm.stationID}${denm.sequenceNumber}".toLong()
+        val id = "${denm.stationID}${denm.sequenceNumber}"
 
         bitmapFromDrawableRes(icon)?.let { bitmap ->
             val existingPoint = pointList[id]
@@ -284,7 +284,7 @@ class Visualizer(
             currentFocused.sequenceNumber == denm.sequenceNumber)
             removeFocused(denm, true)
 
-        val id = "${denm.stationID}${denm.sequenceNumber}".toLong()
+        val id = "${denm.stationID}${denm.sequenceNumber}"
         val point = pointList[id] ?: return
         denmPointAnnotationManager.delete(point)
         pointList.remove(id)
@@ -355,7 +355,7 @@ class Visualizer(
             mapem.currentIconIDs.add(signal.id)
 
             bitmapFromDrawableRes(signalIcon)?.let { bitmap ->
-                val existingPoint = pointList[signal.id]
+                val existingPoint = pointList["${signal.id}"]
 
                 val currentFocused = focused
                 if (existingPoint != null) {
@@ -376,7 +376,7 @@ class Visualizer(
                         .withData(json)
 
                     val newPoint = mapemPointAnnotationManager.create(newPointAnnotationOptions)
-                    pointList[signal.id] = newPoint
+                    pointList["${signal.id}"] = newPoint
 
                     mapemPointAnnotationManager.iconPadding = 10.0
                     mapemPointAnnotationManager.addClickListener(OnPointAnnotationClickListener {
@@ -404,9 +404,9 @@ class Visualizer(
             removeFocused(mapem, true)
 
         for (id in mapem.currentIconIDs) {
-            val point = pointList[id] ?: return
+            val point = pointList["$id"] ?: return
             mapemPointAnnotationManager.delete(point)
-            pointList.remove(id)
+            pointList.remove("$id")
         }
 
         lastSelectedSignalGroup = null
@@ -441,7 +441,7 @@ class Visualizer(
             focused = cam
 
             // Draw line
-            val existingLine = lineList[cam.stationID]
+            val existingLine = lineList["${cam.stationID}"]
             val c = context ?: return
             val colorInt = ContextCompat.getColor(c, R.color.map_line_cam)
             val colorHexString = String.format("#%06X", 0xFFFFFF and colorInt)
@@ -460,7 +460,7 @@ class Visualizer(
                     .withLineWidth(10.0)
 
                 val newLine = camLineAnnotationManager.create(newPolyLineAnnotationOptions)
-                lineList[cam.stationID] = newLine
+                lineList["${cam.stationID}"] = newLine
             }
 
             // Show fragment
@@ -486,11 +486,11 @@ class Visualizer(
      * Removes CAM path history from map and optionally closes the details card
      */
     private fun removeFocused(cam: Cam, closeDetailsTab: Boolean) {
-        val line = lineList[cam.stationID] ?: return
+        val line = lineList["${cam.stationID}"] ?: return
 
         synchronized(fragmentLock) {
             camLineAnnotationManager.delete(line)
-            lineList.remove(cam.stationID)
+            lineList.remove("${cam.stationID}")
 
             focused = null
 
@@ -515,7 +515,7 @@ class Visualizer(
             for (i in denm.calculatedPathHistory.indices) {
 
                 val path = denm.calculatedPathHistory[i]
-                val id = "${denm.stationID}${denm.sequenceNumber}${i}".toLong()
+                val id = "${denm.stationID}${denm.sequenceNumber}${i}"
                 val existingLine = lineList[id]
 
                 if (existingLine != null) {
@@ -561,7 +561,7 @@ class Visualizer(
     private fun removeFocused(denm: Denm, closeDetailsTab: Boolean) {
         synchronized(fragmentLock) {
             for (i in denm.calculatedPathHistory.indices) {
-                val id = "${denm.stationID}${denm.sequenceNumber}${i}".toLong()
+                val id = "${denm.stationID}${denm.sequenceNumber}${i}"
 
                 val line = lineList[id] ?: return
                 denmLineAnnotationManager.delete(line)
@@ -587,7 +587,7 @@ class Visualizer(
             // Draw intersection geometry
             if(drawMapemGeometry && !isSame) {
                 for (lane in mapem.lanes) {
-                    val id = "${mapem.intersectionID}${lane.laneID}".toLong()
+                    val id = "${mapem.intersectionID}${lane.laneID}"
                     val existingLine = lineList[id]
 
                     // Draw only if new, don't redraw every time
@@ -656,7 +656,7 @@ class Visualizer(
             }
 
             for(lane in mapem.lanes) {
-                val id = "${mapem.intersectionID}${lane.laneID}".toLong()
+                val id = "${mapem.intersectionID}${lane.laneID}"
                 val existingLine = lineList[id] ?: continue
 
                 mapemLineAnnotationManager.delete(existingLine)
