@@ -41,6 +41,7 @@ Once you have the application installed and server running. You will need to inp
 
 ## Testing
 Application was tested on following devices:
+- Virtualized phone running API 34 (Android 14.0)
 - Pixel 7 _(Virtualized)_ on API 33 (Android 13.0)
 - Xiaomi Mi 9T on API 30 (Android 11.0)
 - Pixel Tablet _(Virtualized)_ on API 28 (Android 9.0)
