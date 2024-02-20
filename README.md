@@ -25,7 +25,7 @@ It currently supports following ITS messages as defined by the ETSI standard:
 To build and run the application using Android Studio yourself you will need to provide few things:
 
 ### Mapbox
-This application uses Mapbox as the map layer provider and part of visualization process. You will need to register and obtain access tokens from [Mapbox website](mapbox.com). The service allows free tier for 100 monthly active users and 200,000 monthly trips (as of 2/2024).
+This application uses Mapbox as the map layer provider and part of visualization process. You will need to register and obtain access tokens from [Mapbox website](https://www.mapbox.com/). The service allows free tier for 100 monthly active users and 200,000 monthly trips (as of 2/2024).
 
 After registration process, you will need to generate public and secret tokens. The secret token must have **_all public scopes_** checked and **_DOWNLOADS:READ_** checked.
 
