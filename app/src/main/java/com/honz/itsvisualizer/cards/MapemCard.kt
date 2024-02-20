@@ -143,6 +143,11 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
         val secondGroup = filteredSignalGroups.getOrNull(1)
         val thirdGroup = filteredSignalGroups.getOrNull(2)
 
+        // Reference time
+        val referenceTimeTenths = mapem.latestSpatem?.let {
+            convertMoyToMilliseconds(it.moy, it.timeStamp) / 100
+        }
+
         // Left column
         if(firstGroup == null) {
             iconLeft.visibility = View.GONE
@@ -163,7 +168,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
             // Direction
             directionLeft.setImageResource(getDirectionDrawable(firstGroup))
 
-
             // State
             if(movementEvent == null) {
                 "No data yet".also { stateLeft.text = it }
@@ -175,30 +179,28 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
                 stateLeft.text = movementEvent.getStateString()
             }
 
-            val startTime = movementEvent?.startTime
-
             // Min time
-            if(startTime == null || movementEvent.minEndTime == null)
+            if(referenceTimeTenths == null || movementEvent?.minEndTime == null)
                 minWrapperLeft.visibility = View.GONE
             else {
                 minWrapperLeft.visibility = View.VISIBLE
-                minLeft.text = convertTimeFormatToString(movementEvent.minEndTime - startTime)
+                minLeft.text = convertTimeFormatToString(movementEvent.minEndTime - referenceTimeTenths)
             }
 
             // Max time
-            if(startTime == null || movementEvent.maxEndTime == null)
+            if(referenceTimeTenths == null || movementEvent?.maxEndTime == null)
                 maxWrapperLeft.visibility = View.GONE
             else {
                 maxWrapperLeft.visibility = View.VISIBLE
-                maxLeft.text = convertTimeFormatToString(movementEvent.maxEndTime - startTime)
+                maxLeft.text = convertTimeFormatToString(movementEvent.maxEndTime - referenceTimeTenths)
             }
 
             // Likely time
-            if(startTime == null || movementEvent.likelyTime == null)
+            if(referenceTimeTenths == null || movementEvent?.likelyTime == null)
                 likelyWrapperLeft.visibility = View.GONE
             else {
                 likelyWrapperLeft.visibility = View.VISIBLE
-                likelyLeft.text = convertTimeFormatToString(movementEvent.likelyTime - startTime)
+                likelyLeft.text = convertTimeFormatToString(movementEvent.likelyTime - referenceTimeTenths)
             }
         }
 
@@ -234,30 +236,28 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
                 stateCenter.text = movementEvent.getStateString()
             }
 
-            val startTime = movementEvent?.startTime
-
             // Min time
-            if(startTime == null || movementEvent.minEndTime == null)
+            if(referenceTimeTenths == null || movementEvent?.minEndTime == null)
                 minWrapperCenter.visibility = View.GONE
             else {
                 minWrapperCenter.visibility = View.VISIBLE
-                minCenter.text = convertTimeFormatToString(movementEvent.minEndTime - startTime)
+                minCenter.text = convertTimeFormatToString(movementEvent.minEndTime - referenceTimeTenths)
             }
 
             // Max time
-            if(startTime == null || movementEvent.maxEndTime == null)
+            if(referenceTimeTenths == null || movementEvent?.maxEndTime == null)
                 maxWrapperCenter.visibility = View.GONE
             else {
                 maxWrapperCenter.visibility = View.VISIBLE
-                maxCenter.text = convertTimeFormatToString(movementEvent.maxEndTime - startTime)
+                maxCenter.text = convertTimeFormatToString(movementEvent.maxEndTime - referenceTimeTenths)
             }
 
             // Likely time
-            if(startTime == null || movementEvent.likelyTime == null)
+            if(referenceTimeTenths == null || movementEvent?.likelyTime == null)
                 likelyWrapperCenter.visibility = View.GONE
             else {
                 likelyWrapperCenter.visibility = View.VISIBLE
-                likelyCenter.text = convertTimeFormatToString(movementEvent.likelyTime - startTime)
+                likelyCenter.text = convertTimeFormatToString(movementEvent.likelyTime - referenceTimeTenths)
             }
         }
 
@@ -292,41 +292,38 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
                 stateRight.text = movementEvent.getStateString()
             }
 
-            val startTime = movementEvent?.startTime
-
             // Min time
-            if(startTime == null || movementEvent.minEndTime == null)
+            if(referenceTimeTenths == null || movementEvent?.minEndTime == null)
                 minWrapperRight.visibility = View.GONE
             else {
                 minWrapperRight.visibility = View.VISIBLE
-                minRight.text = convertTimeFormatToString(movementEvent.minEndTime - startTime)
+                minRight.text = convertTimeFormatToString(movementEvent.minEndTime - referenceTimeTenths)
             }
 
             // Max time
-            if(startTime == null || movementEvent.maxEndTime == null)
+            if(referenceTimeTenths == null || movementEvent?.maxEndTime == null)
                 maxWrapperRight.visibility = View.GONE
             else {
                 maxWrapperRight.visibility = View.VISIBLE
-                maxRight.text = convertTimeFormatToString(movementEvent.maxEndTime - startTime)
+                maxRight.text = convertTimeFormatToString(movementEvent.maxEndTime - referenceTimeTenths)
             }
 
             // Likely time
-            if(startTime == null || movementEvent.likelyTime == null)
+            if(referenceTimeTenths == null || movementEvent?.likelyTime == null)
                 likelyWrapperRight.visibility = View.GONE
             else {
                 likelyWrapperRight.visibility = View.VISIBLE
-                likelyRight.text = convertTimeFormatToString(movementEvent.likelyTime - startTime)
+                likelyRight.text = convertTimeFormatToString(movementEvent.likelyTime - referenceTimeTenths)
             }
         }
     }
 
     private fun convertTimeFormatToString(timeVal: Int): String {
         val seconds = timeVal / 10
-        val tenths = timeVal % 10
         val minutes = seconds / 60
         val remainingSeconds = seconds % 60
 
-        return String.format("%02d:%02d.%d", minutes, remainingSeconds, tenths)
+        return String.format("%02d:%02d", minutes, remainingSeconds)
     }
 
     private fun findGroupsWithSimilarAngle(currentAngle: Double, signalGroups: List<SignalGroupCompact>) : List<SignalGroupCompact> {
@@ -379,5 +376,12 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
             Maneuver.LEFT_RIGHT -> R.drawable.direction_left_right
             else -> R.drawable.direction_none
         }
+    }
+
+    private fun convertMoyToMilliseconds(moy: Int, timestamp: Int) : Int {
+        val minutesInDay = 1440
+        val secondsInDay = moy % minutesInDay * 60
+        val minutes = secondsInDay % 3600
+        return minutes * 1000 + timestamp
     }
 }
