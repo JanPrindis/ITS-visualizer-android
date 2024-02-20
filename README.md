@@ -47,7 +47,7 @@ Application was tested on following devices:
 - Huawei P9 Lite on API 24 (Android 7.0)
 
 ## Sources
-The message parser was based on [VehicleVisualization from Milan Křivánek](https://github.com/krivmi/VehicleVisualization).
+The message parser is based on [VehicleVisualization from Milan Křivánek](https://github.com/krivmi/VehicleVisualization).
 
 Included graphics and drawables are made by me, or royalty-free icons from [flaticons.net](https://flaticons.net/).
 
