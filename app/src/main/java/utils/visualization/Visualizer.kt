@@ -118,7 +118,7 @@ class Visualizer(
         onTrackedPositionChangedListener = listener
     }
 
-    fun removeOnTrackedPositionChangedListener() {
+    private fun removeOnTrackedPositionChangedListener() {
         onTrackedPositionChangedListener = null
     }
 
@@ -920,6 +920,7 @@ class Visualizer(
         if(newDistance > AUTO_NOTIFICATION_MAX_DIST) return
 
         // Decide if message should be focused
+        @Suppress("MemberVisibilityCanBePrivate")
         if(message is Denm) {
 
             //Message previously cancelled by user

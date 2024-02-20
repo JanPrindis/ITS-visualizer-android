@@ -116,7 +116,7 @@ object TestingData {
                 0, "Vehicle",
                 1, null, null, directionIngressPath = true, directionEgressPath = false,
                 nodes = mutableListOf(
-                    Node(2611, 1678, 0),
+                    Node(2611, 1680, 0),
                     Node(3895, 1591, 0)
                 ),
                 connectingLanes = mutableListOf(
@@ -131,7 +131,7 @@ object TestingData {
                 0, "Vehicle",
                 2, null, null, directionIngressPath = true, directionEgressPath = false,
                 nodes = mutableListOf(
-                    Node(2621, 1678, 0),
+                    Node(2621, 1698, 0),
                     Node(3899, 1591, 0)
                 ),
                 connectingLanes = mutableListOf(
