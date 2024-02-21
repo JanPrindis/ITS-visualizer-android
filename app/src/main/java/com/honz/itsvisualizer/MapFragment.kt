@@ -45,6 +45,8 @@ import com.mapbox.maps.plugin.gestures.addOnMoveListener
 import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.logo.logo
 import com.mapbox.maps.plugin.scalebar.scalebar
+import com.mapbox.navigation.base.formatter.DistanceFormatterOptions
+import com.mapbox.navigation.base.formatter.UnitType
 import com.mapbox.navigation.base.options.NavigationOptions
 import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.lifecycle.MapboxNavigationApp
@@ -52,7 +54,10 @@ import com.mapbox.navigation.core.lifecycle.MapboxNavigationObserver
 import com.mapbox.navigation.core.lifecycle.requireMapboxNavigation
 import com.mapbox.navigation.core.trip.session.LocationMatcherResult
 import com.mapbox.navigation.core.trip.session.LocationObserver
+import com.mapbox.navigation.core.trip.session.TripSessionState
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
+import com.mapbox.navigation.ui.speedlimit.api.MapboxSpeedInfoApi
+import com.mapbox.navigation.ui.speedlimit.view.MapboxSpeedInfoView
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import utils.storage.MessageStorage
@@ -92,13 +97,18 @@ class MapFragment : Fragment() {
     private lateinit var connectionToggleFab: FloatingActionButton
     private lateinit var cameraCenteringToggleFab: FloatingActionButton
     private lateinit var detailsCard: MaterialCardView
+    private lateinit var speedInfoView: MapboxSpeedInfoView
+
+    // Speed limit API
+    private lateinit var distanceFormatterOptions: DistanceFormatterOptions
+    private lateinit var speedInfoApi: MapboxSpeedInfoApi
+
     // For UI tests
     private lateinit var testingFab: FloatingActionButton
 
     // Navigation
     private lateinit var mapboxNavigation: MapboxNavigation
     private val navigationLocationProvider = NavigationLocationProvider()
-    private var isTripSessionStarted = false
 
     // Camera tracking GPS
     private var centerCamera = true
@@ -112,6 +122,7 @@ class MapFragment : Fragment() {
     private var mapThemeIndex = 0
     private var displayBuildingExteriors = false
     private var buildingExteriorOpacity = 0.5f
+    private var units = 0
     private var cameraFaceNorth = false
     private var cameraTrackUserSelected = true
     private var cameraDefaultZoom = 18.0f
@@ -134,6 +145,9 @@ class MapFragment : Fragment() {
             LatestGPSLocation.location = enhancedLocation
             if(!externalCameraTracking || externalCameraTrackingCancelled)
                 updateCameraPosition(enhancedLocation)
+
+            val value = speedInfoApi.updatePostedAndCurrentSpeed(locationMatcherResult, distanceFormatterOptions)
+            speedInfoView.render(value)
         }
 
         // Not implemented
@@ -189,6 +203,7 @@ class MapFragment : Fragment() {
         mapThemeIndex = sharedPreferences.getInt("mapThemeIndex", 0)
         displayBuildingExteriors = sharedPreferences.getBoolean("displayBuildingExteriors", false)
         buildingExteriorOpacity = sharedPreferences.getFloat("buildingExteriorsOpacity", 0.5f)
+        units = sharedPreferences.getInt("mapUnitsIndex", 0)
         cameraFaceNorth = sharedPreferences.getBoolean("cameraFaceNorth", false)
         cameraTrackUserSelected = sharedPreferences.getBoolean("cameraTrackUserSelected", true)
         cameraDefaultZoom = sharedPreferences.getFloat("cameraDefaultZoom", 18.0f)
@@ -219,6 +234,9 @@ class MapFragment : Fragment() {
         // Init mapbox
         mapView = view.findViewById(R.id.mapView)
         initMap()
+
+        // Speed limits
+        speedInfoView = view.findViewById(R.id.speedInfoView)
 
         // Camera position update if available
         LatestGPSLocation.location?.let { updateCameraPosition(it) }
@@ -312,9 +330,8 @@ class MapFragment : Fragment() {
 
         } else {
             // Granted
-            if (!isTripSessionStarted) {
+            if (mapboxNavigation.getTripSessionState() == TripSessionState.STOPPED) {
                 mapboxNavigation.startTripSession()
-                isTripSessionStarted = true
             } else {
                 LatestGPSLocation.location?.let { updateCameraPosition(it) }
             }
@@ -425,6 +442,15 @@ class MapFragment : Fragment() {
                     .build()
             }.attach(this@MapFragment)
         }
+
+        // Init speed limit API
+        speedInfoApi = MapboxSpeedInfoApi()
+        distanceFormatterOptions = DistanceFormatterOptions.Builder(requireContext())
+            .unitType(
+                if(units == 0) UnitType.METRIC
+                else UnitType.IMPERIAL
+            )
+            .build()
 
         mapView.location.apply {
             setLocationProvider(navigationLocationProvider)
