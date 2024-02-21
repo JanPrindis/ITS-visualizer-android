@@ -35,7 +35,6 @@ class SettingsFragment : Fragment() {
     private lateinit var exteriorsOpacity: TextInputEditText
     private lateinit var unitsDropdown: AutoCompleteTextView
 
-
     // Camera settings
     private lateinit var northAlignToggle: MaterialSwitch
     private lateinit var trackUserSelectedToggle: MaterialSwitch
