@@ -699,7 +699,6 @@ class Visualizer(
                     message.autoNotifyCanceled = true
                 removeFocused(message, closeDetailsTab)
             }
-            null -> return
             else -> {
                 synchronized(fragmentLock) {
                     focused = null
