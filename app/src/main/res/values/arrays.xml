@@ -17,6 +17,11 @@
         <item>Dark</item>
     </array>
 
+    <array name="map_units_selection">
+        <item>Metric</item>
+        <item>Imperial</item>
+    </array>
+
     <array name="auto_priority">
         <item>MAPEM/SPATEM</item>
         <item>DENM</item>

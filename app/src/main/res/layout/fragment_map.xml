@@ -24,6 +24,15 @@
 
     </com.mapbox.maps.MapView>
 
+    <com.mapbox.navigation.ui.speedlimit.view.MapboxSpeedInfoView
+        android:id="@+id/speedInfoView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/connectionToggleFab"
+        app:layout_constraintEnd_toEndOf="@+id/connectionToggleFab"
+        app:layout_constraintStart_toStartOf="@+id/connectionToggleFab" />
+
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/detailsCard"
         android:layout_width="0dp"

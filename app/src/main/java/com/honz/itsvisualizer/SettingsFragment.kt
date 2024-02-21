@@ -33,6 +33,8 @@ class SettingsFragment : Fragment() {
     private lateinit var exteriorsToggle: MaterialSwitch
     private lateinit var exteriorsOpacityWrapper: LinearLayout
     private lateinit var exteriorsOpacity: TextInputEditText
+    private lateinit var unitsDropdown: AutoCompleteTextView
+
 
     // Camera settings
     private lateinit var northAlignToggle: MaterialSwitch
@@ -70,6 +72,7 @@ class SettingsFragment : Fragment() {
         exteriorsToggle = view.findViewById(R.id.exteriorsToggle)
         exteriorsOpacityWrapper = view.findViewById(R.id.opacityWrapper)
         exteriorsOpacity = view.findViewById(R.id.buildingOpacity)
+        unitsDropdown = view.findViewById(R.id.unitsDropdownText)
 
         // Camera
         northAlignToggle = view.findViewById(R.id.cameraNorthAlignToggle)
@@ -196,6 +199,17 @@ class SettingsFragment : Fragment() {
             }
         }
         exteriorsOpacity.filters = arrayOf(opacityInputFilter)
+
+        // Units dropdown
+        val unitsIndex = sharedPreferences.getInt("mapUnitsIndex", 0)
+        val unitsOptions = resources.getStringArray(R.array.map_units_selection)
+
+        if (unitsIndex in unitsOptions.indices) {
+            unitsDropdown.setText(unitsOptions[unitsIndex], false)
+        }
+        else {
+            unitsDropdown.setText(unitsOptions[0], false)
+        }
 
         // Camera face North
         val cameraFaceNorth = sharedPreferences.getBoolean("cameraFaceNorth", false)
@@ -329,6 +343,12 @@ class SettingsFragment : Fragment() {
 
         // 3D exteriors opacity
         editor.putFloat("buildingExteriorsOpacity", exteriorsOpacity.text.toString().toFloat())
+
+        // Units
+        val selectedUnit = unitsDropdown.text.toString()
+        val unitsOptions = resources.getStringArray(R.array.map_units_selection)
+        val unitsIndex = unitsOptions.indexOf(selectedUnit)
+        editor.putInt("mapUnitsIndex", unitsIndex)
 
         // Camera face North
         editor.putBoolean("cameraFaceNorth", northAlignToggle.isChecked)
