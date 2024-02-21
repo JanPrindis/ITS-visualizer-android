@@ -1,6 +1,6 @@
 # ITS Visualizer for Android
 
-ITS Visualizer is a native Android application designed to parse and visualize messages from Intelligent Transport Systems (ITS). It contains user-friendly interface designed for mobile phones, tablets and Android Auto. The application shows information about surrounding vehicles, infrastructure, hazards and more.
+ITS Visualizer is a native Android application designed to visualize messages from Intelligent Transport Systems (ITS). It contains user-friendly interface designed for mobile phones, tablets and Android Auto. The application shows information about surrounding vehicles, infrastructure, hazards and more.
 
 Application is intended to be used with a server, that will provide the captured ITS data via TCP socket.
 
