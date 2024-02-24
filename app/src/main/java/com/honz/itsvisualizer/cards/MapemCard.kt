@@ -1,7 +1,6 @@
 package com.honz.itsvisualizer.cards
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -109,8 +108,6 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
         maxRight = view.findViewById(R.id.mapem_right_max_value)
         likelyWrapperRight = view.findViewById(R.id.mapem_right_likely_wrapper)
         likelyRight = view.findViewById(R.id.mapem_right_likely_value)
-
-        Log.wtf("MAPEM CARD", "onCreate")
 
         initialized = true
         updateValues(mapem, signalGroup)
