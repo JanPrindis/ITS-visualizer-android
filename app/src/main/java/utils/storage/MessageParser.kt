@@ -22,7 +22,7 @@ import utils.storage.data.Srem
 import utils.storage.data.Ssem
 import utils.storage.data.VehicleLights
 import java.text.DateFormat
-import java.util.Date
+import java.util.Calendar
 
 class MessageParser(private val context: Context) {
     /**
@@ -69,17 +69,9 @@ class MessageParser(private val context: Context) {
                 null -> return
             }
 
-            val timeEpoch = json
-                .optJSONObject("_source")
-                ?.optJSONObject("layers")
-                ?.getJSONObject("frame")
-                ?.getString("frame.time_epoch")?.toDouble()
-
-            if(protocol.isNotEmpty() && timeEpoch != null) {
-
-                // Convert epoch timestamp to string
-                val date = Date(timeEpoch.toLong() * 1000)
-                val timeString = DateFormat.getTimeInstance().format(date)
+            if(protocol.isNotEmpty()) {
+                val currentTime = Calendar.getInstance().time
+                val timeString = DateFormat.getTimeInstance().format(currentTime)
 
                 sendNotification("[$timeString] $protocol from: $stationID")
             }
