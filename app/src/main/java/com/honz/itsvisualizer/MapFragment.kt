@@ -58,6 +58,8 @@ import com.mapbox.navigation.core.trip.session.TripSessionState
 import com.mapbox.navigation.ui.maps.location.NavigationLocationProvider
 import com.mapbox.navigation.ui.speedlimit.api.MapboxSpeedInfoApi
 import com.mapbox.navigation.ui.speedlimit.view.MapboxSpeedInfoView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import utils.storage.MessageStorage
@@ -96,6 +98,7 @@ class MapFragment : Fragment() {
     private lateinit var mapView: MapView
     private lateinit var connectionToggleFab: FloatingActionButton
     private lateinit var cameraCenteringToggleFab: FloatingActionButton
+    private lateinit var deleteFab: FloatingActionButton
     private lateinit var detailsCard: MaterialCardView
     private lateinit var speedInfoView: MapboxSpeedInfoView
 
@@ -213,6 +216,14 @@ class MapFragment : Fragment() {
         // Connection toggle FAB
         connectionToggleFab = view.findViewById(R.id.connectionToggleFab)
         connectionToggleFab.setOnClickListener { toggleConnection() }
+
+        // Delete FAB
+        deleteFab = view.findViewById(R.id.deleteAllFab)
+        deleteFab.setOnClickListener {
+            CoroutineScope(Dispatchers.Default).launch {
+                MessageStorage.clearStorage()
+            }
+        }
 
         // Testing FAB
         testingFab = view.findViewById(R.id.testFab)
