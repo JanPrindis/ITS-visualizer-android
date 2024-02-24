@@ -681,7 +681,6 @@ class Visualizer(
         }
     }
 
-
     /**
      * Removes current focused card, optionally closes the details card
      */
@@ -709,7 +708,6 @@ class Visualizer(
             }
         }
     }
-
 
     /**
      * Changes the currently displayed card for fragment passed as parameter
@@ -919,7 +917,6 @@ class Visualizer(
         if(newDistance > AUTO_NOTIFICATION_MAX_DIST) return
 
         // Decide if message should be focused
-        @Suppress("MemberVisibilityCanBePrivate")
         if(message is Denm) {
 
             //Message previously cancelled by user
