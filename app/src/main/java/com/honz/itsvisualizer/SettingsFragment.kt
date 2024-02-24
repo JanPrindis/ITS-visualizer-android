@@ -38,6 +38,7 @@ class SettingsFragment : Fragment() {
     // Camera settings
     private lateinit var northAlignToggle: MaterialSwitch
     private lateinit var trackUserSelectedToggle: MaterialSwitch
+    private lateinit var returnToGpsTrackToggle: MaterialSwitch
     private lateinit var defaultZoom: TextInputEditText
 
     // Visualization settings
@@ -76,6 +77,7 @@ class SettingsFragment : Fragment() {
         // Camera
         northAlignToggle = view.findViewById(R.id.cameraNorthAlignToggle)
         trackUserSelectedToggle = view.findViewById(R.id.trackUserSelectedToggle)
+        returnToGpsTrackToggle = view.findViewById(R.id.returnCameraAfterTrackToggle)
         defaultZoom = view.findViewById(R.id.cameraZoom)
 
         // Visualization
@@ -218,6 +220,10 @@ class SettingsFragment : Fragment() {
         val trackUserSelected = sharedPreferences.getBoolean("cameraTrackUserSelected", true)
         trackUserSelectedToggle.isChecked = trackUserSelected
 
+        // Return camera back to GPS tracking
+        val returnToGpsTrack = sharedPreferences.getBoolean("cameraReturnToGpsTrackSelected", true)
+        returnToGpsTrackToggle.isChecked = returnToGpsTrack
+
         // Camera default zoom
         val zoom = sharedPreferences.getFloat("cameraDefaultZoom", 18.0f)
         defaultZoom.setText(zoom.toString())
@@ -354,6 +360,9 @@ class SettingsFragment : Fragment() {
 
         // Camera track user selected stations
         editor.putBoolean("cameraTrackUserSelected", trackUserSelectedToggle.isChecked)
+
+        // Return camera back to GPS tracking
+        editor.putBoolean("cameraReturnToGpsTrackSelected", returnToGpsTrackToggle.isChecked)
 
         // Camera default zoom
         editor.putFloat("cameraDefaultZoom", defaultZoom.text.toString().toFloat())

@@ -128,6 +128,7 @@ class MapFragment : Fragment() {
     private var units = 0
     private var cameraFaceNorth = false
     private var cameraTrackUserSelected = true
+    private var cameraReturnToGpsTrack = true
     private var cameraDefaultZoom = 18.0f
 
     private var uiTestingEnabled = false
@@ -209,6 +210,7 @@ class MapFragment : Fragment() {
         units = sharedPreferences.getInt("mapUnitsIndex", 0)
         cameraFaceNorth = sharedPreferences.getBoolean("cameraFaceNorth", false)
         cameraTrackUserSelected = sharedPreferences.getBoolean("cameraTrackUserSelected", true)
+        cameraReturnToGpsTrack = sharedPreferences.getBoolean("cameraReturnToGpsTrackSelected", true)
         cameraDefaultZoom = sharedPreferences.getFloat("cameraDefaultZoom", 18.0f)
 
         uiTestingEnabled = sharedPreferences.getBoolean("uiTestEnabled", false)
@@ -262,6 +264,9 @@ class MapFragment : Fragment() {
                 if (it == null) {
                     externalCameraTracking = false
 
+                    if(cameraReturnToGpsTrack)
+                        setCameraCentering(true)
+
                     if (oldCenterCamera && !externalCameraTrackingCancelled)
                         setCameraCentering(true)
 
@@ -271,6 +276,9 @@ class MapFragment : Fragment() {
                 }
                 // User decided to cancel tracking
                 if (externalCameraTrackingCancelled) {
+                    if(cameraReturnToGpsTrack)
+                        setCameraCentering(true)
+
                     return@setOnTrackedPositionChangedListener
                 }
 

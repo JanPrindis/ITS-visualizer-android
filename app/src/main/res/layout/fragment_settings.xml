@@ -282,6 +282,15 @@
                 android:text="@string/make_camera_track_user_selected_stations"
                 android:textSize="16sp" />
 
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/returnCameraAfterTrackToggle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:text="@string/return_to_gps_track"
+                android:textSize="16sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
