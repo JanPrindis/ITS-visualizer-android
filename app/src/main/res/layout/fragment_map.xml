@@ -15,12 +15,11 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:mapbox_attributionGravity="right|top"
         app:mapbox_cameraTargetLat="49.83173097700292"
         app:mapbox_cameraTargetLng="18.160851157066798"
         app:mapbox_cameraZoom="9.0"
-        app:mapbox_logoGravity="right|top"
-        app:mapbox_attributionGravity="right|top"
-        >
+        app:mapbox_logoGravity="right|top">
 
     </com.mapbox.maps.MapView>
 
