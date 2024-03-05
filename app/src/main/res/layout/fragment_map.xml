@@ -28,10 +28,10 @@
         android:id="@+id/speedInfoView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/connectionToggleFab"
-        app:layout_constraintEnd_toEndOf="@+id/connectionToggleFab"
-        app:layout_constraintStart_toStartOf="@+id/connectionToggleFab" />
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="@+id/cameraCenteringToggleFab"
+        app:layout_constraintStart_toStartOf="@+id/cameraCenteringToggleFab"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/detailsCard"
