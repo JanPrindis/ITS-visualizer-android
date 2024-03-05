@@ -207,31 +207,84 @@ class Visualizer(
         if(isBeingDestroyed) return
         val position = denm.originPosition ?: return
 
+        // Cause and sub-cause codes are defined in Denm.kt
         val icon = when(denm.causeCode) {
             0 -> R.drawable.denm_general
-            1 -> R.drawable.denm_traffic
+            1 -> {
+                when (denm.subCauseCode) {
+                    2,3,4 -> R.drawable.denm_traffic_inc
+                    5 -> R.drawable.denm_traffic_stationary
+                    6,7,8 -> R.drawable.denm_traffic_dec
+                    else -> R.drawable.denm_traffic_inc
+                }
+            }
             2 -> R.drawable.denm_accident
             3 -> R.drawable.denm_roadwork
-            6 -> R.drawable.denm_weather
-            9 -> R.drawable.denm_road_condition
-            10 -> R.drawable.denm_road_obstacle
-            11 -> R.drawable.denm_road_animal
-            12 -> R.drawable.denm_road_human
-            14 -> R.drawable.denm_car
-            15 -> R.drawable.denm_emergency
-            17 -> R.drawable.denm_weather
-            19 -> R.drawable.denm_weather
-            26 -> R.drawable.denm_car
-            27 -> R.drawable.denm_traffic
-            91 -> R.drawable.denm_breakdown
+            6 -> R.drawable.denm_weather_adhesion
+            9 -> R.drawable.denm_hazard_surface
+            10 -> R.drawable.denm_hazard_obstacle
+            11 -> R.drawable.denm_hazard_animal
+            12 -> R.drawable.denm_hazard_human
+            14 -> R.drawable.denm_wrong_way
+            15 -> R.drawable.denm_recovery
+            17 -> R.drawable.denm_weather_extreme
+            18 -> R.drawable.denm_weather_visibility
+            19 -> R.drawable.denm_weather_rain
+            26 -> R.drawable.denm_vehicle_warning
+            27 -> R.drawable.denm_traffic_stationary
+            91 -> {
+                when (denm.subCauseCode) {
+                    1 -> R.drawable.denm_breakdown_fuel
+                    2 -> R.drawable.denm_breakdown_battery
+                    3,4 -> R.drawable.denm_breakdown_engine
+                    5 -> R.drawable.denm_breakdown_temp
+                    6 -> R.drawable.denm_breakdown_brake
+                    7 -> R.drawable.denm_breakdown_steering
+                    8 -> R.drawable.denm_breakdown_tyre
+                    else -> R.drawable.denm_breakdown
+                }
+            }
             92 -> R.drawable.denm_accident
             93 -> R.drawable.denm_human_problem
-            94 -> R.drawable.denm_car
-            95 -> R.drawable.denm_emergency
-            96 -> R.drawable.denm_dangerous_curve
-            97 -> R.drawable.denm_car
-            98 -> R.drawable.denm_car
-            99 -> R.drawable.denm_general
+            94 -> {
+                when (denm.subCauseCode) {
+                    1 -> R.drawable.denm_stationary_human_problem
+                    2 -> R.drawable.denm_stationary_breakdown
+                    3 -> R.drawable.denm_stationary_crash
+                    4 -> R.drawable.denm_stationary_public_stop
+                    5 -> R.drawable.denm_stationary_dangerous_goods
+                    else -> R.drawable.denm_stationary
+                }
+            }
+            95 -> R.drawable.denm_recovery
+            96 -> {
+                when (denm.subCauseCode) {
+                    1 -> R.drawable.denm_dangerous_curve_left
+                    2 -> R.drawable.denm_dangerous_curve_right
+                    3,4 -> R.drawable.denm_big_dangerous_curve_multi_left
+                    5 -> R.drawable.denm_dangerous_curve_multi_right
+                    else -> R.drawable.denm_dangerous_curve_left
+                }
+            }
+            97 -> {
+                when (denm.subCauseCode) {
+                    1 -> R.drawable.denm_longitudinal_collision_risk
+                    2,4 -> R.drawable.denm_pedestrian_collision_risk
+                    3 -> R.drawable.denm_lateral_collision_risk
+                    else -> R.drawable.denm_collision_risk
+                }
+            }
+            98 -> R.drawable.denm_signal_violation
+            99 -> {
+                when (denm.subCauseCode) {
+                    1 -> R.drawable.denm_danger_emergency_brake
+                    2,5,7 -> R.drawable.denm_danger_aeb
+                    3 -> R.drawable.denm_danger_esp
+                    4 -> R.drawable.denm_danger_abs
+                    6 -> R.drawable.denm_danger_brake
+                    else -> R.drawable.denm_vehicle_warning
+                }
+            }
             else -> R.drawable.denm_general
         }
 

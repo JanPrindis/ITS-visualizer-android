@@ -27,7 +27,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:src="@drawable/denm_general_big"
+        android:src="@drawable/denm_big_general"
         app:layout_constraintBottom_toTopOf="@+id/denm_cause_code"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"

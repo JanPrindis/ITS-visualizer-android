@@ -85,7 +85,9 @@ class Denm(
                 7 to "Traffic jam decreasing",
                 8 to "Traffic jam strongly decreasing"
             )),
-            2 to CauseCode("Accident", emptyMap()),
+            2 to CauseCode("Accident", mapOf(
+                8 to "Assistance requested (e-Call)"
+            )),
             3 to CauseCode("Roadworks", mapOf(
                 4 to "Short-term stationary roadWorks",
                 5 to "Street cleaning",
@@ -102,6 +104,7 @@ class Denm(
             )),
             15 to CauseCode("Rescue And Recovery Work In Progress", emptyMap()),
             17 to CauseCode("Adverse Weather Condition - Extreme Weather Condition", emptyMap()),
+            18 to CauseCode("Adverse Weather Condition - Visibility", emptyMap()),
             19 to CauseCode("Adverse Weather Condition - Precipitation", emptyMap()),
             26 to CauseCode("Slow Vehicle", emptyMap()),
             27 to CauseCode("Dangerous End Of Queue", emptyMap()),
@@ -165,5 +168,4 @@ class Denm(
             ))
         )
     }
-
 }
