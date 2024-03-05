@@ -13,7 +13,7 @@ It currently supports following ITS messages as defined by the ETSI standard:
 - Signal Request Status Extended Message (SSEM)
 
 ## Screenshot
-![Demo of CAM visualization](https://i.imgur.com/obfZGyC.png)
+![Demo of CAM visualization](https://i.imgur.com/7KtZNq7.png)
 
 ## General Requirements
 - Android device running at least API 24 (Android 7.0)
