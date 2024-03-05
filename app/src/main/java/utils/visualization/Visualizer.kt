@@ -133,18 +133,18 @@ class Visualizer(
         if(isBeingDestroyed) return
         val position = cam.originPosition ?: return
         val icon = when(cam.stationType) {
-            1 -> R.drawable.pedestrian_icon
-            2 -> R.drawable.cyclist_icon
-            3 -> R.drawable.moped_icon
-            4 -> R.drawable.motorbike_icon
-            5 -> R.drawable.car_icon
-            6 -> R.drawable.bus_icon
-            7 -> R.drawable.light_truck_icon
-            8 -> R.drawable.heavy_truck_icon
-            10 -> R.drawable.ambulance_icon // Special Vehicle?
-            11 -> R.drawable.tram_icon
-            15 -> R.drawable.roadside_unit_icon
-            else -> R.drawable.unknown_icon
+            1 -> R.drawable.pedestrian_icon_transparent
+            2 -> R.drawable.cyclist_icon_transparent
+            3 -> R.drawable.moped_icon_transparent
+            4 -> R.drawable.motorbike_icon_transparent
+            5 -> R.drawable.car_icon_transparent
+            6 -> R.drawable.bus_icon_transparent
+            7 -> R.drawable.light_truck_icon_transparent
+            8 -> R.drawable.heavy_truck_icon_transparent
+            10 -> R.drawable.ambulance_icon_transparent // Special Vehicle?
+            11 -> R.drawable.tram_icon_transparent
+            15 -> R.drawable.roadside_unit_icon_transparent
+            else -> R.drawable.unknown_icon_transparent
         }
 
         val json = gson.toJsonTree(cam)
