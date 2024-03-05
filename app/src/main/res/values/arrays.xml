@@ -13,6 +13,10 @@
     </array>
     
     <array name="map_theme_selection">
+        <item>Traffic Light</item>
+        <item>Traffic Dark</item>
+        <item>Streets</item>
+        <item>Outdoors</item>
         <item>Light</item>
         <item>Dark</item>
     </array>

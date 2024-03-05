@@ -409,6 +409,10 @@ class MapFragment : Fragment() {
         val style = when(mapThemeIndex) {
             0 -> Style.TRAFFIC_DAY
             1 -> Style.TRAFFIC_NIGHT
+            2 -> Style.MAPBOX_STREETS
+            3 -> Style.OUTDOORS
+            4 -> Style.LIGHT
+            5 -> Style.DARK
             else -> Style.TRAFFIC_DAY
         }
 
@@ -428,8 +432,8 @@ class MapFragment : Fragment() {
      */
     private fun setupBuildings(style: Style) {
         val color = when(mapThemeIndex) {
-            0 -> R.color.map_building_extrusion_color_light
-            1 -> R.color.map_building_extrusion_color_dark
+            0, 2, 3, 4 -> R.color.map_building_extrusion_color_light
+            1, 5 -> R.color.map_building_extrusion_color_dark
             else -> R.color.map_building_extrusion_color_light
         }
 
