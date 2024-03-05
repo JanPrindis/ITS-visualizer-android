@@ -1,6 +1,3 @@
 <resources>
 
-    <style name="Widget.Theme.ITSVisualizer.MyView" parent="">
-        <item name="android:background">@color/gray_400</item>
-    </style>
 </resources>
