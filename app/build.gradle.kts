@@ -12,7 +12,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.2"
+        versionName = "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,6 +50,6 @@ dependencies {
     implementation("com.mapbox.navigation:android:2.16.0")
 
     // Google play services dependency to use integrated google's location provider
-    implementation("com.google.android.gms:play-services-location:21.1.0")
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 
 }
