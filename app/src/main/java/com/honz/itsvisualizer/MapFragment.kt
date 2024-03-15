@@ -302,8 +302,8 @@ class MapFragment : Fragment() {
         return view
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onResume() {
+        super.onResume()
 
         // Navigation initialization can be only called, when the fragment is created and attached, so it can access Application context
         initNavigation()
@@ -321,6 +321,24 @@ class MapFragment : Fragment() {
                 }
             },
         )
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        if (!this.requireActivity().isChangingConfigurations) {
+            mapboxNavigation.unregisterLocationObserver(locationObserver)
+
+            VisualizerInstance.visualizer?.destroy()
+            VisualizerInstance.visualizer = null
+
+            MapboxNavigationApp.detach(this) // Possible redundant
+            MapboxNavigationApp.disable()
+
+            externalCameraTracking = false
+            externalCameraTrackingCancelled = false
+            centerCamera = true
+        }
     }
 
     /**
@@ -392,6 +410,9 @@ class MapFragment : Fragment() {
      */
     private val stateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
+
+            if (view == null)
+                return
 
             when(intent?.getBooleanExtra("socketState", true)) {
                 true -> connectionToggleFab.setImageResource(R.drawable.wifi)
@@ -589,23 +610,9 @@ class MapFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        mapboxNavigation.unregisterLocationObserver(locationObserver)
-
-        VisualizerInstance.visualizer?.destroy()
-        VisualizerInstance.visualizer = null
-
-        MapboxNavigationApp.detach(this) // Possible redundant
-
-        externalCameraTracking = false
-        externalCameraTrackingCancelled = false
-        centerCamera = true
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        MapboxNavigationApp.disable()
+
         LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(stateReceiver)
     }
 }
