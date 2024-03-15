@@ -31,4 +31,10 @@
         <item>DENM</item>
     </array>
 
+    <array name="app_theme_selection">
+        <item>System</item>
+        <item>Light</item>
+        <item>Dark</item>
+    </array>
+
 </resources>

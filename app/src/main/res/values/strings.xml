@@ -60,4 +60,8 @@
     <string name="play_sound_effect_when_auto_notification_expands">Play sound effect when auto notification expands</string>
     <string name="units">Units</string>
     <string name="return_to_gps_track">Always return to GPS tracking when tracked station is deleted</string>
+    <string name="application_appearance">Application appearance</string>
+    <string name="application_theme">Application theme</string>
+    <string name="no_data">No data</string>
+    <string name="no_data_yet">No data yet…</string>
 </resources>

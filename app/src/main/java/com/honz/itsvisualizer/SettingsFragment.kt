@@ -28,8 +28,11 @@ class SettingsFragment : Fragment() {
     private lateinit var timeDropdown: AutoCompleteTextView
     private lateinit var timeWarning: TextView
 
+    // App appearance
+    private lateinit var appThemeDropdown: AutoCompleteTextView
+
     // Map settings
-    private lateinit var themeDropdown: AutoCompleteTextView
+    private lateinit var mapThemeDropdown: AutoCompleteTextView
     private lateinit var exteriorsToggle: MaterialSwitch
     private lateinit var exteriorsOpacityWrapper: LinearLayout
     private lateinit var exteriorsOpacity: TextInputEditText
@@ -67,8 +70,11 @@ class SettingsFragment : Fragment() {
         timeDropdown = view.findViewById(R.id.timeDropdownText)
         timeWarning = view.findViewById(R.id.timeNeverWarning)
 
+        // App
+        appThemeDropdown = view.findViewById(R.id.appThemeDropdownText)
+
         // Map
-        themeDropdown = view.findViewById(R.id.themeDropdownText)
+        mapThemeDropdown = view.findViewById(R.id.themeDropdownText)
         exteriorsToggle = view.findViewById(R.id.exteriorsToggle)
         exteriorsOpacityWrapper = view.findViewById(R.id.opacityWrapper)
         exteriorsOpacity = view.findViewById(R.id.buildingOpacity)
@@ -139,15 +145,27 @@ class SettingsFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // Theme dropdown
-        val themeIndex = sharedPreferences.getInt("mapThemeIndex", 0)
-        val themeOptions = resources.getStringArray(R.array.map_theme_selection)
+        // App theme dropdown
+        val appThemeIndex = sharedPreferences.getInt("appThemeIndex", 0)
+        val appThemeOptions = resources.getStringArray(R.array.app_theme_selection)
 
-        if (themeIndex in themeOptions.indices) {
-            themeDropdown.setText(themeOptions[themeIndex], false)
+        if (appThemeIndex in appThemeOptions.indices) {
+            appThemeDropdown.setText(appThemeOptions[appThemeIndex], false)
         }
         else {
-            timeDropdown.setText(themeOptions[0], false)
+            appThemeDropdown.setText(appThemeOptions[0], false)
+        }
+
+
+        // Map theme dropdown
+        val mapThemeIndex = sharedPreferences.getInt("mapThemeIndex", 0)
+        val mapThemeOptions = resources.getStringArray(R.array.map_theme_selection)
+
+        if (mapThemeIndex in mapThemeOptions.indices) {
+            mapThemeDropdown.setText(mapThemeOptions[mapThemeIndex], false)
+        }
+        else {
+            timeDropdown.setText(mapThemeOptions[0], false)
         }
 
         // 3D exteriors toggle
@@ -337,11 +355,17 @@ class SettingsFragment : Fragment() {
         val deletionTimeIndex = deletionTimeOptions.indexOf(selectedDeletionTime)
         editor.putInt("deletionTimeIndex", deletionTimeIndex)
 
-        // Theme
-        val selectedTheme = themeDropdown.text.toString()
-        val themeOptions = resources.getStringArray(R.array.map_theme_selection)
-        val themeIndex = themeOptions.indexOf(selectedTheme)
-        editor.putInt("mapThemeIndex", themeIndex)
+        // App theme
+        val selectedAppTheme = appThemeDropdown.text.toString()
+        val appThemeOptions = resources.getStringArray(R.array.app_theme_selection)
+        val appThemeIndex = appThemeOptions.indexOf(selectedAppTheme)
+        editor.putInt("appThemeIndex", appThemeIndex)
+
+        // Map theme
+        val selectedMapTheme = mapThemeDropdown.text.toString()
+        val mapThemeOptions = resources.getStringArray(R.array.map_theme_selection)
+        val mapThemeIndex = mapThemeOptions.indexOf(selectedMapTheme)
+        editor.putInt("mapThemeIndex", mapThemeIndex)
 
         // 3D exteriors toggle
         editor.putBoolean("displayBuildingExteriors", exteriorsToggle.isChecked)

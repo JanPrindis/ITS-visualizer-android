@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.navigationrail.NavigationRailView
@@ -58,6 +59,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Settings updated
+    private val settingsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            setAppTheme()
+        }
+    }
+
     private val socketStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             doUpdate = intent?.getBooleanExtra("socketState", false) ?: false
@@ -69,6 +77,8 @@ class MainActivity : AppCompatActivity() {
     private var cleanerService: ComponentName? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setAppTheme()
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -103,6 +113,10 @@ class MainActivity : AppCompatActivity() {
         val stateFilter = IntentFilter("itsVisualizer.SERVICE_STATE")
         LocalBroadcastManager.getInstance(this).registerReceiver(socketStateReceiver, stateFilter)
 
+        // Signals from Settings fragment
+        val settingsFilter = IntentFilter("itsVisualizer.SETTINGS_UPDATED")
+        LocalBroadcastManager.getInstance(this).registerReceiver(settingsReceiver, settingsFilter)
+
         // Services
         socketService = startService(Intent(this, SocketService::class.java))
         cleanerService = startService(Intent(this, MessageCleanupService::class.java))
@@ -133,11 +147,22 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    private fun setAppTheme() {
+        val sharedPreferences = this.getSharedPreferences("Settings", Context.MODE_PRIVATE)
+
+        when (sharedPreferences.getInt("appThemeIndex", 0)) {
+            0 -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)  // Auto
+            1 -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)             // Light mode
+            2 -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)            // Dark mode
+        }
+    }
+
     override fun onStop() {
         super.onStop()
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(statusReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(socketStateReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(settingsReceiver)
 
         stopService(Intent(this, SocketService::class.java))
         stopService(Intent(this, MessageCleanupService::class.java))
@@ -148,6 +173,7 @@ class MainActivity : AppCompatActivity() {
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(statusReceiver)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(socketStateReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(settingsReceiver)
 
         stopService(Intent(this, SocketService::class.java))
         stopService(Intent(this, MessageCleanupService::class.java))
