@@ -11,9 +11,14 @@ import androidx.fragment.app.Fragment
 import com.honz.itsvisualizer.R
 import utils.storage.data.Cam
 
-class CamCard(private val cam: Cam) : Fragment() {
-
+class CamCard : Fragment {
+    private var camData: Cam? = null
     private var initialized = false
+
+    constructor() : super()
+    constructor(cam: Cam) : super() {
+        camData = cam
+    }
 
     private lateinit var title: TextView
     private lateinit var icon: ImageView
@@ -35,6 +40,9 @@ class CamCard(private val cam: Cam) : Fragment() {
     private lateinit var denmWrapper: LinearLayout
     private lateinit var sremWrapper: LinearLayout
     private lateinit var ssemWrapper: LinearLayout
+
+    private lateinit var noDataTextView: TextView
+    private lateinit var dataWrapper: LinearLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,17 +72,27 @@ class CamCard(private val cam: Cam) : Fragment() {
         sremWrapper = view.findViewById(R.id.cam_srem_wrapper)
         ssemWrapper = view.findViewById(R.id.cam_ssem_wrapper)
 
+        noDataTextView = view.findViewById(R.id.no_data_text_view)
+        dataWrapper = view.findViewById(R.id.data_wrapper)
+
         initialized = true
-        updateValues(cam)
+        camData?.let { updateValues(it) } ?: setToNoData()
 
         return view
     }
 
     fun updateValues(cam: Cam) {
-
+        camData = cam
         if(!initialized) return
 
         "CAM, station ID: ${cam.stationID}".also { title.text = it }
+
+        noDataTextView.visibility = View.GONE
+        leftBlinker.visibility = View.VISIBLE
+        rightBlinker.visibility = View.VISIBLE
+        lowBeams.visibility = View.VISIBLE
+        highBeams.visibility = View.VISIBLE
+        dataWrapper.visibility = View.VISIBLE
 
         var roleStr = cam.getRoleString()
 
@@ -177,6 +195,8 @@ class CamCard(private val cam: Cam) : Fragment() {
         }
         else
             ssemWrapper.visibility = View.GONE
+
+        this.view?.invalidate()
     }
 
     private fun formatHeadingWithDirection(headingValue: Float): String {
@@ -192,5 +212,21 @@ class CamCard(private val cam: Cam) : Fragment() {
         }
 
         return String.format("%.2f° (%s)", headingValue, direction)
+    }
+
+    private fun setToNoData() {
+
+        icon.setImageResource(R.drawable.vehicle_no_data)
+        noDataTextView.visibility = View.VISIBLE
+
+        leftBlinker.visibility = View.GONE
+        rightBlinker.visibility = View.GONE
+        lowBeams.visibility = View.GONE
+        highBeams.visibility = View.GONE
+
+        dataWrapper.visibility = View.GONE // Invisible to keep layout spacing
+
+        if (title.text == getText(R.string.title_placeholder))
+            title.text = getText(R.string.no_data)
     }
 }

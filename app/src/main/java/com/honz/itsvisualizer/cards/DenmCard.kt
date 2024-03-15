@@ -12,9 +12,14 @@ import utils.storage.data.Denm
 import java.text.DateFormat.getDateTimeInstance
 import java.util.Date
 
-class DenmCard(private val denm: Denm) : Fragment() {
-
+class DenmCard : Fragment {
+    private var denmData: Denm? = null
     private var initialized = false
+
+    constructor() : super()
+    constructor(denm: Denm) : super() {
+        denmData = denm
+    }
 
     private lateinit var title: TextView
     private lateinit var icon: ImageView
@@ -35,16 +40,19 @@ class DenmCard(private val denm: Denm) : Fragment() {
         detectionTime = view.findViewById(R.id.denm_detection_time)
 
         initialized = true
-        updateValues(denm)
 
+        denmData?.let { updateValues(it) } ?: setToNoData()
         return view
     }
 
     fun updateValues(denm: Denm) {
-
+        denmData = denm
         if(!initialized) return
 
         "DENM from station ID: ${denm.originatingStationID}".also { title.text = it }
+
+        subCauseCode.visibility = View.VISIBLE
+        detectionTime.visibility = View.VISIBLE
 
         val drawable = when(denm.causeCode) {
             0 -> R.drawable.denm_big_general
@@ -141,5 +149,18 @@ class DenmCard(private val denm: Denm) : Fragment() {
         val epoch2004 = 1072911600000L
         val date = Date(denm.detectionTime + epoch2004)
         "Detection time: ${getDateTimeInstance().format(date)}".also { detectionTime.text = it }
+
+        this.view?.invalidate()
+    }
+
+    private fun setToNoData() {
+        icon.setImageResource(R.drawable.denm_big_no_data)
+        causeCode.text = getText(R.string.no_data_yet)
+
+        subCauseCode.visibility = View.GONE
+        detectionTime.visibility = View.INVISIBLE // Invisible to keep layout spacing
+
+        if (title.text == getText(R.string.title_placeholder))
+            title.text = getText(R.string.no_data)
     }
 }

@@ -29,66 +29,67 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/car_top"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintBottom_toTopOf="@+id/data_wrapper"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toStartOf="@+id/cam_right_signal"
         app:layout_constraintHeight_percent="0.5"
         app:layout_constraintStart_toEndOf="@+id/cam_left_signal"
         app:layout_constraintTop_toBottomOf="@+id/cam_title"
-        app:layout_constraintWidth_percent="0.5"
-        android:importantForAccessibility="no" />
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintWidth_percent="0.5" />
 
     <ImageView
         android:id="@+id/cam_left_signal"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/cam_signal_left_off"
         app:layout_constraintBottom_toTopOf="@+id/cam_low_beams"
         app:layout_constraintEnd_toStartOf="@+id/cam_vehicle_icon"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/cam_vehicle_icon"
-        android:importantForAccessibility="no" />
+        app:layout_constraintTop_toTopOf="@+id/cam_vehicle_icon" />
 
     <ImageView
         android:id="@+id/cam_right_signal"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginEnd="16dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/cam_signal_right_off"
         app:layout_constraintBottom_toBottomOf="@+id/cam_left_signal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/cam_vehicle_icon"
-        app:layout_constraintTop_toTopOf="@+id/cam_left_signal"
-        android:importantForAccessibility="no" />
+        app:layout_constraintTop_toTopOf="@+id/cam_left_signal" />
 
     <ImageView
         android:id="@+id/cam_low_beams"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/cam_low_beam_off"
         app:layout_constraintBottom_toBottomOf="@+id/cam_vehicle_icon"
         app:layout_constraintEnd_toEndOf="@+id/cam_left_signal"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="@+id/cam_left_signal"
-        app:layout_constraintTop_toBottomOf="@+id/cam_left_signal"
-        android:importantForAccessibility="no" />
+        app:layout_constraintTop_toBottomOf="@+id/cam_left_signal" />
 
     <ImageView
         android:id="@+id/cam_high_beams"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/cam_high_beam_off"
         app:layout_constraintBottom_toBottomOf="@+id/cam_vehicle_icon"
         app:layout_constraintEnd_toEndOf="@+id/cam_right_signal"
         app:layout_constraintStart_toStartOf="@+id/cam_right_signal"
-        app:layout_constraintTop_toBottomOf="@+id/cam_left_signal"
-        android:importantForAccessibility="no" />
+        app:layout_constraintTop_toBottomOf="@+id/cam_left_signal" />
 
     <LinearLayout
-        android:id="@+id/linearLayout"
+        android:id="@+id/data_wrapper"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -296,5 +297,20 @@
                 app:autoSizeTextType="uniform" />
         </LinearLayout>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/no_data_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/no_data_yet"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/cam_vehicle_icon"
+        app:layout_constraintStart_toStartOf="@+id/cam_vehicle_icon"
+        app:layout_constraintTop_toBottomOf="@+id/cam_vehicle_icon" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

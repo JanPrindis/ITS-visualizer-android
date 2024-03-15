@@ -17,11 +17,20 @@ import utils.storage.data.MovementState
 import utils.storage.data.SignalGroupCompact
 import kotlin.math.abs
 
-class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragment() {
-
+class MapemCard : Fragment {
+    private var mapemData: Mapem? = null
+    private var signalGroupData: Int? = null
     private var initialized = false
 
+    constructor(): super()
+
+    constructor(mapem: Mapem, signalGroup: Int?) : super() {
+        mapemData = mapem
+        signalGroupData = signalGroup
+    }
+
     private lateinit var title: TextView
+    private lateinit var noDataTextView: TextView
 
     // Left column
     private lateinit var iconLeft: ImageView
@@ -69,6 +78,7 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
         val view = inflater.inflate(R.layout.fragment_mapem_card, container, false)
 
         title = view.findViewById(R.id.mapem_title)
+        noDataTextView = view.findViewById(R.id.no_data_text_view)
 
         // Left
         iconLeft = view.findViewById(R.id.mapem_left_icon)
@@ -110,12 +120,16 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
         likelyRight = view.findViewById(R.id.mapem_right_likely_value)
 
         initialized = true
-        updateValues(mapem, signalGroup)
+
+        mapemData?.let { updateValues(it, signalGroupData) } ?: setToNoData()
 
         return view
     }
 
     fun updateValues(mapem: Mapem, signalGroup: Int?) {
+
+        mapemData = mapem
+        signalGroupData = signalGroup
 
         if(!initialized) return
 
@@ -136,6 +150,11 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
         else
             title.text = intersectionName
 
+        if (filteredSignalGroups.isEmpty()){
+            setToNoData()
+            return
+        }
+
         val firstGroup = filteredSignalGroups.getOrNull(0)
         val secondGroup = filteredSignalGroups.getOrNull(1)
         val thirdGroup = filteredSignalGroups.getOrNull(2)
@@ -144,6 +163,8 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
         val referenceTimeTenths = mapem.latestSpatem?.let {
             convertMoyToMilliseconds(it.moy, it.timeStamp) / 100
         }
+
+        noDataTextView.visibility = View.GONE
 
         // Left column
         if(firstGroup == null) {
@@ -167,10 +188,10 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
 
             // State
             if(movementEvent == null) {
-                "No data yet".also { stateLeft.text = it }
+                getString(R.string.no_data_yet).also { stateLeft.text = it }
             }
             else if(movementEvent.getStateString().isEmpty()) {
-                "No data".also { stateLeft.text = it }
+                getString(R.string.no_data).also { stateLeft.text = it }
             }
             else {
                 stateLeft.text = movementEvent.getStateString()
@@ -221,13 +242,12 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
             // Direction
             directionCenter.setImageResource(getDirectionDrawable(secondGroup))
 
-
             // State
             if(movementEvent == null) {
-                "No data yet".also { stateCenter.text = it }
+                getString(R.string.no_data_yet).also { stateCenter.text = it }
             }
             else if(movementEvent.getStateString().isEmpty()) {
-                "No data".also { stateCenter.text = it }
+                getString(R.string.no_data).also { stateCenter.text = it }
             }
             else {
                 stateCenter.text = movementEvent.getStateString()
@@ -280,10 +300,10 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
 
             // State
             if(movementEvent == null) {
-                "No data yet".also { stateRight.text = it }
+                getString(R.string.no_data_yet).also { stateRight.text = it }
             }
             else if(movementEvent.getStateString().isEmpty()) {
-                "No data".also { stateRight.text = it }
+                getString(R.string.no_data).also { stateRight.text = it }
             }
             else {
                 stateRight.text = movementEvent.getStateString()
@@ -313,6 +333,8 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
                 likelyRight.text = convertTimeFormatToString(movementEvent.likelyTime - referenceTimeTenths)
             }
         }
+
+        this.view?.invalidate()
     }
 
     private fun convertTimeFormatToString(timeVal: Int): String {
@@ -380,5 +402,26 @@ class MapemCard(private val mapem: Mapem, private val signalGroup: Int?) : Fragm
         val secondsInDay = moy % minutesInDay * 60
         val minutes = secondsInDay % 3600
         return minutes * 1000 + timestamp
+    }
+
+    private fun setToNoData() {
+        noDataTextView.visibility = View.VISIBLE
+        iconLeft.setImageResource(R.drawable.signal_big_no_data)
+        directionLeft.setImageResource(R.drawable.direction_no_data)
+
+        // Hide everything else
+        iconCenter.visibility = View.GONE
+        iconRight.visibility = View.GONE
+
+        directionCenter.visibility = View.GONE
+        directionRight.visibility = View.GONE
+
+        detailsWrapperLeft.visibility = View.INVISIBLE // Invisible, so it keeps the spacing
+
+        detailsWrapperCenter.visibility = View.GONE
+        detailsWrapperRight.visibility = View.GONE
+
+        if (title.text == getText(R.string.title_placeholder))
+            title.text = getText(R.string.no_data_yet)
     }
 }
