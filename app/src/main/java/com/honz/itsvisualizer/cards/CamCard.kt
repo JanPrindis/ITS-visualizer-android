@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment
 import com.honz.itsvisualizer.R
 import utils.storage.data.Cam
 
-class CamCard : Fragment {
+class CamCard : DetailsCard {
     private var camData: Cam? = null
     private var initialized = false
 

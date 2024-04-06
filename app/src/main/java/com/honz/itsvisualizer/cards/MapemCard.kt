@@ -17,7 +17,7 @@ import utils.storage.data.MovementState
 import utils.storage.data.SignalGroupCompact
 import kotlin.math.abs
 
-class MapemCard : Fragment {
+class MapemCard : DetailsCard {
     private var mapemData: Mapem? = null
     private var signalGroupData: Int? = null
     private var initialized = false

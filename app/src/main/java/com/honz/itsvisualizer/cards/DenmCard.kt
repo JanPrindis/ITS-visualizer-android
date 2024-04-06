@@ -1,7 +1,6 @@
 package com.honz.itsvisualizer.cards
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +11,7 @@ import utils.storage.data.Denm
 import java.text.DateFormat.getDateTimeInstance
 import java.util.Date
 
-class DenmCard : Fragment {
+class DenmCard : DetailsCard {
     private var denmData: Denm? = null
     private var initialized = false
 
