@@ -10,7 +10,7 @@ import android.widget.TextView
 import com.honz.itsvisualizer.R
 import utils.storage.data.Cam
 
-class CamCard : DetailsCard {
+class CamCard : DetailCard {
     private var camData: Cam? = null
     private var initialized = false
 

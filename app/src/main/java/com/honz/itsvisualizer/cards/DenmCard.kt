@@ -11,7 +11,7 @@ import utils.storage.data.Denm
 import java.text.DateFormat.getDateTimeInstance
 import java.util.Date
 
-class DenmCard : DetailsCard {
+class DenmCard : DetailCard {
     private var denmData: Denm? = null
     private var initialized = false
 
