@@ -6,12 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import com.honz.itsvisualizer.R
 import utils.storage.data.Denm
 import java.text.DateFormat.getDateTimeInstance
 import java.util.Date
 
-class DenmCard : DetailCard {
+class DenmCard : Fragment {
     private var denmData: Denm? = null
     private var initialized = false
 

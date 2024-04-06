@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import com.honz.itsvisualizer.LatestGPSLocation
 import com.honz.itsvisualizer.R
 import utils.storage.data.Maneuver
@@ -16,7 +17,7 @@ import utils.storage.data.MovementState
 import utils.storage.data.SignalGroupCompact
 import kotlin.math.abs
 
-class MapemCard : DetailCard {
+class MapemCard : Fragment {
     private var mapemData: Mapem? = null
     private var signalGroupData: Int? = null
     private var initialized = false
